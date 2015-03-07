@@ -1,0 +1,7 @@
+env = Environment()
+
+env.Append(CPPPATH=['src'])
+
+lua = env.StaticLibrary('lua',Glob('src/*.c'))
+
+Return('lua')
