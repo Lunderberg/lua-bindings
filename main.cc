@@ -9,12 +9,10 @@ using std::endl;
 #include "LuaState.hh"
 #include "LuaExceptions.hh"
 
-extern "C"{
-  static int cppfunction(lua_State* L){
-    double arg = luaL_checknumber(L,1);
-    lua_pushnumber(L, arg*0.5);
-    return 1;
-  }
+int cppfunction(lua_State* L){
+  double arg = luaL_checknumber(L,1);
+  lua_pushnumber(L, arg*0.5);
+  return 1;
 }
 
 int main(){
