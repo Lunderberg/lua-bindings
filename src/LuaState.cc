@@ -29,30 +29,27 @@ void LuaState::Push(lua_CFunction t){
 }
 
 template<>
-double LuaState::Pop(){
-  double output = lua_tonumber(L, -1);
-  lua_pop(L,1);
-  return output;
+double LuaState::Read(int stack_pos){
+  return lua_tonumber(L, stack_pos);
 }
 
 template<>
-std::string LuaState::Pop(){
-  const char* output_char = lua_tostring(L, -1);
+std::string LuaState::Read(int stack_pos){
+  const char* output_char = lua_tostring(L, stack_pos);
   if(!output_char){
     throw LuaInvalidStackContents("Stack did not contain a string");
   }
   std::string output = output_char;
-  lua_pop(L,1);
   return output;
 }
 
 template<>
-void LuaState::Pop() { }
+void LuaState::Read(int /* stack_pos */) { }
 
 void LuaState::LoadFile(const char* filename) {
   int load_result = luaL_loadfile(L, filename);
   if(load_result){
-    auto error_message = Pop<std::string>();
+    auto error_message = Read<std::string>();
     if(load_result == LUA_ERRFILE){
       throw LuaFileNotFound(filename);
     } else {
@@ -62,7 +59,7 @@ void LuaState::LoadFile(const char* filename) {
 
   int run_result = lua_pcall(L, 0, LUA_MULTRET, 0);
   if(run_result){
-    auto error_message = Pop<std::string>();
+    auto error_message = Read<std::string>();
     throw LuaFileExecuteError(error_message);
   }
 }

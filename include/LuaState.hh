@@ -1,6 +1,7 @@
 #ifndef _LUASTATE_H_
 #define _LUASTATE_H_
 
+#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -42,16 +43,18 @@ public:
 
   template<typename return_type=void, typename... Params>
   return_type Call(const char* name, Params... params){
+    int top = lua_gettop(L);
     lua_getglobal(L, name);
     PushMany(params...);
-    int result = lua_pcall(L, sizeof...(params),
-                           (std::is_same<return_type, void>::value ? 0 : 1),
-                           0);
+    int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
+    int nresults= lua_gettop(L) - top;
+    std::cout << "Called " << name << "\tNresults: " << nresults << std::endl;
+    LuaDelayedPop delayed(L, nresults);
     if(result){
-      auto error_message = Pop<std::string>();
+      auto error_message = Read<std::string>();
       throw LuaFunctionExecuteError(error_message);
     }
-    return Pop<return_type>();
+    return Read<return_type>();
   }
 
 private:
@@ -70,7 +73,7 @@ private:
   void Push(T t);
 
   template<typename T>
-  T Pop();
+  T Read(int stack_pos = -1);
 
   lua_State* L;
 };
