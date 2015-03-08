@@ -1,6 +1,7 @@
 #ifndef _LUASTATE_H_
 #define _LUASTATE_H_
 
+#include <cassert>
 #include <iostream>
 #include <functional>
 #include <map>
@@ -11,9 +12,12 @@
 
 #include <lua.hpp>
 
+//#include "LuaCallable.hh"
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+
+int call_doubledouble(lua_State* L);
 
 class LuaState : public std::enable_shared_from_this<LuaState> {
   // std::make_shared requires a public constructor.
@@ -74,7 +78,12 @@ private:
 
   void Push(int t);
   void Push(lua_CFunction t);
-  void Push(std::function<double(double)> t);
+
+  void Push(std::function<double(double)> func){
+    Push(cpp_functions.size());
+    cpp_functions.push_back(std::unique_ptr<LuaCallable_DoubleDouble>(new LuaCallable_DoubleDouble(func)));
+    lua_pushcclosure(L, call_doubledouble, 1);
+  }
 
   template<typename T>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
@@ -87,8 +96,33 @@ private:
   typename std::enable_if<std::is_same<T, void>::value, T>::type
   Read() { }
 
+
+  class LuaCallable{
+  public:
+    virtual ~LuaCallable() { }
+    virtual int call(std::shared_ptr<LuaState> L) = 0;
+  };
+
+  class LuaCallable_DoubleDouble : public LuaCallable {
+  public:
+    LuaCallable_DoubleDouble(std::function<double(double)> function) :
+      func(function) { }
+
+    virtual int call(std::shared_ptr<LuaState> L){
+      assert(lua_gettop(L->state()) == 1);
+      double argument = LuaObject(L->state(), -1).Cast<double>();
+      double output = func(argument);
+      L->Push(output);
+      return 1;
+    }
+
+  private:
+    std::function<double(double)> func;
+  };
+
   lua_State* L;
-  std::vector<std::function<double(double)> > functions;
+  //std::vector<std::function<double(double)> > functions;
+  std::vector<std::unique_ptr<LuaCallable> > cpp_functions;
 
   friend int call_doubledouble(lua_State*);
   static std::map<lua_State*, std::weak_ptr<LuaState> > all_states;

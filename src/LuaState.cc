@@ -9,10 +9,8 @@ int call_doubledouble(lua_State* L){
   assert(lua_gettop(L) == 1);
   auto state = LuaState::GetCppState(L);
   int function_index = LuaObject(L, lua_upvalueindex(1)).Cast<int>();
-  double argument = LuaObject(L, -1).Cast<double>();
-  double output = state->functions.at(function_index)(argument);
-  state->Push(output);
-  return 1;
+  int args_returned = state->cpp_functions.at(function_index)->call(state);
+  return args_returned;
 }
 
 void LuaState::RegisterCppState(std::shared_ptr<LuaState> state){
@@ -53,12 +51,6 @@ void LuaState::Push(int t){
 
 void LuaState::Push(lua_CFunction t){
   lua_pushcfunction(L, t);
-}
-
-void LuaState::Push(std::function<double(double)> func){
-  Push(functions.size());
-  functions.push_back(func);
-  lua_pushcclosure(L, call_doubledouble, 1);
 }
 
 void LuaState::LoadFile(const char* filename) {
