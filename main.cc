@@ -9,6 +9,10 @@ using std::endl;
 #include "LuaState.hh"
 #include "LuaExceptions.hh"
 
+double double_number(double x){
+  return 2*x;
+}
+
 int cppfunction(lua_State* L){
   double arg = luaL_checknumber(L,1);
   lua_pushnumber(L, arg*0.5);
@@ -37,6 +41,9 @@ int main(){
 
   L->SetGlobal("global_var", 5);
   L->Call("print_global");
+
+  L->SetGlobal("double_number", double_number);
+  L->Call("test_double_number");
 
   return 0;
 }

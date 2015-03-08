@@ -18,3 +18,8 @@ global_var = 0
 function print_global()
    print("Global variable is "..global_var)
 end
+
+function test_double_number()
+   local x = 5
+   print("Double "..x.." is "..double_number(x))
+end

@@ -2,8 +2,12 @@
 #define _LUASTATE_H_
 
 #include <iostream>
+#include <functional>
+#include <map>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <lua.hpp>
 
@@ -68,8 +72,9 @@ private:
   }
   void PushMany(){ }
 
-  template<typename T>
-  void Push(T t);
+  void Push(int t);
+  void Push(lua_CFunction t);
+  void Push(std::function<double(double)> t);
 
   template<typename T>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
@@ -83,6 +88,13 @@ private:
   Read() { }
 
   lua_State* L;
+  std::vector<std::function<double(double)> > functions;
+
+  friend int call_doubledouble(lua_State*);
+  static std::map<lua_State*, std::weak_ptr<LuaState> > all_states;
+  static void RegisterCppState(std::shared_ptr<LuaState> state);
+  static void DeregisterCppState(lua_State* c_state);
+  static std::shared_ptr<LuaState> GetCppState(lua_State* c_state);
 };
 
 #endif /* _LUASTATE_H_ */

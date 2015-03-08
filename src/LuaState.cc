@@ -1,11 +1,39 @@
 #include "LuaState.hh"
 
+#include <cassert>
 #include <iostream>
-#include <string>
 
+std::map<lua_State*, std::weak_ptr<LuaState> > LuaState::all_states;
+
+int call_doubledouble(lua_State* L){
+  assert(lua_gettop(L) == 1);
+  auto state = LuaState::GetCppState(L);
+  int function_index = LuaObject(L, lua_upvalueindex(1)).Cast<int>();
+  double argument = LuaObject(L, -1).Cast<double>();
+  double output = state->functions.at(function_index)(argument);
+  state->Push(output);
+  return 1;
+}
+
+void LuaState::RegisterCppState(std::shared_ptr<LuaState> state){
+  assert(all_states.count(state->L) == 0);
+  all_states[state->L] = state;
+}
+
+void LuaState::DeregisterCppState(lua_State* c_state){
+  assert(all_states.count(c_state) == 1);
+  all_states.erase(c_state);
+}
+
+std::shared_ptr<LuaState> LuaState::GetCppState(lua_State* c_state){
+  assert(all_states.count(c_state) == 1);
+  return all_states[c_state].lock();
+}
 
 std::shared_ptr<LuaState> LuaState::create(){
-  return std::make_shared<LuaState>(HiddenStruct());
+  auto output = std::make_shared<LuaState>(HiddenStruct());
+  LuaState::RegisterCppState(output);
+  return output;
 }
 
 LuaState::LuaState(HiddenStruct) : L(nullptr){
@@ -16,16 +44,21 @@ LuaState::~LuaState() {
   if(L){
     lua_close(L);
   }
+  DeregisterCppState(L);
 }
 
-template<>
 void LuaState::Push(int t){
   lua_pushnumber(L, t);
 }
 
-template<>
 void LuaState::Push(lua_CFunction t){
   lua_pushcfunction(L, t);
+}
+
+void LuaState::Push(std::function<double(double)> func){
+  Push(functions.size());
+  functions.push_back(func);
+  lua_pushcclosure(L, call_doubledouble, 1);
 }
 
 void LuaState::LoadFile(const char* filename) {
