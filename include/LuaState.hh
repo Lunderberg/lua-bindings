@@ -6,12 +6,26 @@
 
 #include <lua.hpp>
 
+#include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
+#include "LuaGlobal.hh"
 
-class LuaState {
+class LuaState : public std::enable_shared_from_this<LuaState> {
+  // std::make_shared requires a public constructor.
+  // Having all constructors require a private struct ensures that it can only be called from this class.
+  // In turn, this allows for restriction of the LuaState to always be made through a shared_ptr
+  struct HiddenStruct { };
 public:
-  static std::shared_ptr<LuaState> create();
+  LuaState(HiddenStruct);
   ~LuaState();
+
+  LuaState(const LuaState&) = delete;
+  LuaState(LuaState&&) = delete;
+  LuaState& operator=(const LuaState&) = delete;
+
+  static std::shared_ptr<LuaState> create();
+
+  lua_State* state() { return L; }
 
   void LoadFile(const char* filename);
   void LoadLibs();
@@ -20,6 +34,10 @@ public:
   void SetGlobal(const char* name, T t){
     Push(t);
     lua_setglobal(L, name);
+  }
+
+  LuaGlobal GetGlobal(std::string name){
+    return LuaGlobal(shared_from_this(), name);
   }
 
   template<typename return_type=void, typename... Params>
@@ -35,11 +53,6 @@ public:
     }
     return Pop<return_type>();
   }
-
-
-
-protected:
-  LuaState();
 
 private:
   template<typename FirstParam, typename... Params>

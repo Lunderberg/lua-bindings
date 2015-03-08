@@ -3,18 +3,12 @@
 #include <iostream>
 #include <string>
 
-// Trickery needed to let a shared_ptr work with a protected constructor.
-// LuaState should never be constructed other than as a shared_ptr,
-//   since otherwise, LuaObjs may point to an invalid LuaState.
-namespace {
-  struct concrete_LuaState : public LuaState { };
-};
 
 std::shared_ptr<LuaState> LuaState::create(){
-  return std::make_shared<concrete_LuaState>();
+  return std::make_shared<LuaState>(HiddenStruct());
 }
 
-LuaState::LuaState() : L(nullptr){
+LuaState::LuaState(HiddenStruct) : L(nullptr){
   L = luaL_newstate();
 }
 
