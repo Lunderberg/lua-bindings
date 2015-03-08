@@ -28,24 +28,6 @@ void LuaState::Push(lua_CFunction t){
   lua_pushcfunction(L, t);
 }
 
-template<>
-double LuaState::Read(int stack_pos){
-  return lua_tonumber(L, stack_pos);
-}
-
-template<>
-std::string LuaState::Read(int stack_pos){
-  const char* output_char = lua_tostring(L, stack_pos);
-  if(!output_char){
-    throw LuaInvalidStackContents("Stack did not contain a string");
-  }
-  std::string output = output_char;
-  return output;
-}
-
-template<>
-void LuaState::Read(int /* stack_pos */) { }
-
 void LuaState::LoadFile(const char* filename) {
   int load_result = luaL_loadfile(L, filename);
   if(load_result){

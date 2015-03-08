@@ -9,7 +9,7 @@
 
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
-#include "LuaGlobal.hh"
+#include "LuaObject.hh"
 
 class LuaState : public std::enable_shared_from_this<LuaState> {
   // std::make_shared requires a public constructor.
@@ -37,8 +37,12 @@ public:
     lua_setglobal(L, name);
   }
 
-  LuaGlobal GetGlobal(std::string name){
-    return LuaGlobal(shared_from_this(), name);
+  template<typename T>
+  T GetGlobal(const char* name){
+    lua_getglobal(L, name);
+    LuaDelayedPop(L, 1);
+    LuaObject obj(L, -1);
+    return obj.Cast<T>();
   }
 
   template<typename return_type=void, typename... Params>
@@ -48,7 +52,6 @@ public:
     PushMany(params...);
     int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
     int nresults= lua_gettop(L) - top;
-    std::cout << "Called " << name << "\tNresults: " << nresults << std::endl;
     LuaDelayedPop delayed(L, nresults);
     if(result){
       auto error_message = Read<std::string>();
@@ -63,17 +66,21 @@ private:
     Push(std::forward<FirstParam>(first));
     PushMany(std::forward<Params>(params)...);
   }
-
-  template<typename LastParam>
-  void PushMany(LastParam&& last){
-    Push(std::forward<LastParam>(last));
-  }
+  void PushMany(){ }
 
   template<typename T>
   void Push(T t);
 
   template<typename T>
-  T Read(int stack_pos = -1);
+  typename std::enable_if<!std::is_same<T, void>::value, T>::type
+  Read(int stack_pos = -1){
+    LuaObject obj(L, stack_pos);
+    return obj.Cast<T>();
+  }
+
+  template<typename T>
+  typename std::enable_if<std::is_same<T, void>::value, T>::type
+  Read() { }
 
   lua_State* L;
 };

@@ -35,5 +35,8 @@ int main(){
   auto num_return = L->Call<double>("myfunction", 5);
   cout << "The return value of the function was " << num_return << endl;
 
+  L->SetGlobal("global_var", 5);
+  L->Call("print_global");
+
   return 0;
 }
