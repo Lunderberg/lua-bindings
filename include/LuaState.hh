@@ -127,7 +127,7 @@ private:
       if(lua_gettop(L->state()) != sizeof...(Params)){
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
-      RetVal output = func(L->Read<Params>(-Indices-1)...);
+      RetVal output = func(L->Read<Params>(Indices+1)...);
       L->Push(output);
       return 1;
     }
