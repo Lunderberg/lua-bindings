@@ -22,4 +22,7 @@ end
 function test_double_number()
    local x = 5
    print("Double "..x.." is "..double_number(x))
+   print("Double "..x.." is "..double_integer(x))
+   local y = 10
+   print("Sum of "..x.." and "..y.." is "..sum_integers(x,y))
 end

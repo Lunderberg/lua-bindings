@@ -5,8 +5,7 @@
 
 std::map<lua_State*, std::weak_ptr<LuaState> > LuaState::all_states;
 
-int call_doubledouble(lua_State* L){
-  assert(lua_gettop(L) == 1);
+int call_cpp_function(lua_State* L){
   auto state = LuaState::GetCppState(L);
   int function_index = LuaObject(L, lua_upvalueindex(1)).Cast<int>();
   int args_returned = state->cpp_functions.at(function_index)->call(state);

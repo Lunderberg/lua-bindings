@@ -12,12 +12,12 @@
 
 #include <lua.hpp>
 
-//#include "LuaCallable.hh"
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaUtils.hh"
 
-int call_doubledouble(lua_State* L);
+int call_cpp_function(lua_State* L);
 
 class LuaState : public std::enable_shared_from_this<LuaState> {
   // std::make_shared requires a public constructor.
@@ -79,10 +79,18 @@ private:
   void Push(int t);
   void Push(lua_CFunction t);
 
-  void Push(std::function<double(double)> func){
+  template<typename RetVal, typename... Params>
+  void Push(RetVal(*func)(Params...)){
+    Push(std::function<RetVal(Params...)>(func));
+  }
+
+  template<typename RetVal, typename... Params>
+  void Push(std::function<RetVal(Params...)> func){
     Push(cpp_functions.size());
-    cpp_functions.push_back(std::unique_ptr<LuaCallable_DoubleDouble>(new LuaCallable_DoubleDouble(func)));
-    lua_pushcclosure(L, call_doubledouble, 1);
+    auto callable_ptr = std::unique_ptr<LuaCallable_Implementation<RetVal, Params...>>(
+                                    new LuaCallable_Implementation<RetVal, Params...>(func));
+    cpp_functions.push_back(std::move(callable_ptr));
+    lua_pushcclosure(L, call_cpp_function, 1);
   }
 
   template<typename T>
@@ -103,28 +111,34 @@ private:
     virtual int call(std::shared_ptr<LuaState> L) = 0;
   };
 
-  class LuaCallable_DoubleDouble : public LuaCallable {
+  template<typename RetVal, typename... Params>
+  class LuaCallable_Implementation : public LuaCallable {
   public:
-    LuaCallable_DoubleDouble(std::function<double(double)> function) :
+    LuaCallable_Implementation(std::function<RetVal(Params...)> function) :
       func(function) { }
 
     virtual int call(std::shared_ptr<LuaState> L){
-      assert(lua_gettop(L->state()) == 1);
-      double argument = LuaObject(L->state(), -1).Cast<double>();
-      double output = func(argument);
+      return call_helper(build_indices<sizeof...(Params)>(), L);
+    }
+
+  private:
+    template<int... Indices>
+    int call_helper(indices<Indices...>, std::shared_ptr<LuaState> L){
+      if(lua_gettop(L->state()) != sizeof...(Params)){
+        throw LuaCppCallError("Incorrect number of arguments passed");
+      }
+      RetVal output = func(L->Read<Params>(-Indices-1)...);
       L->Push(output);
       return 1;
     }
 
-  private:
-    std::function<double(double)> func;
+    std::function<RetVal(Params...)> func;
   };
 
   lua_State* L;
-  //std::vector<std::function<double(double)> > functions;
   std::vector<std::unique_ptr<LuaCallable> > cpp_functions;
 
-  friend int call_doubledouble(lua_State*);
+  friend int call_cpp_function(lua_State*);
   static std::map<lua_State*, std::weak_ptr<LuaState> > all_states;
   static void RegisterCppState(std::shared_ptr<LuaState> state);
   static void DeregisterCppState(lua_State* c_state);

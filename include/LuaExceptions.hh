@@ -22,6 +22,8 @@ Exception(LuaExecuteError, LuaFunctionExecuteError);
 
 Exception(LuaException, LuaConversionError);
 
+Exception(LuaException, LuaCppCallError);
+
 #undef Exception
 
 #endif /* _LUAEXCEPTIONS_H_ */

@@ -13,6 +13,14 @@ double double_number(double x){
   return 2*x;
 }
 
+int double_integer(int x){
+  return 2*x;
+}
+
+int sum_integers(int x, int y){
+  return x+y;
+}
+
 int cppfunction(lua_State* L){
   double arg = luaL_checknumber(L,1);
   lua_pushnumber(L, arg*0.5);
@@ -43,7 +51,10 @@ int main(){
   L->Call("print_global");
 
   L->SetGlobal("double_number", double_number);
+  L->SetGlobal("double_integer", double_integer);
+  L->SetGlobal("sum_integers", sum_integers);
   L->Call("test_double_number");
+
 
   return 0;
 }
