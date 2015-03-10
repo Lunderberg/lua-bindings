@@ -89,15 +89,12 @@ public:
   /*! Returns the value of a global variable.
 
     @throws LuaInvalidStackContents The global variable cannot be converted to the requested type.
-
-    TODO: Use LuaState::Read.
    */
   template<typename T>
   T GetGlobal(const char* name){
     lua_getglobal(L, name);
     LuaDelayedPop(L, 1);
-    LuaObject obj(L, -1);
-    return obj.Cast<T>();
+    return Read<T>(-1);
   }
 
   //! Calls a Lua function
@@ -143,11 +140,14 @@ private:
    */
   void PushMany(){ }
 
-  //! Pushes an integer onto the Lua stack
-  /*! Pushes an integer onto the Lua stack
-    TODO: Change to templated version working for all std::is_arithmetic types.
+  //! Pushes a number onto the Lua stack
+  /*! Pushes a number onto the Lua stack
+    The number must be some arithmetic type.
    */
-  void Push(int t);
+  template<typename T>
+  typename std::enable_if<std::is_arithmetic<T>::value>::type Push(T t){
+    lua_pushnumber(L, t);
+  }
 
   //! Pushes a lua_CFunction onto the Lua stack
   /*! Pushes a C-style function pointer int(*)(lua_State*).

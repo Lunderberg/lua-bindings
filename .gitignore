@@ -2,3 +2,4 @@
 .sconsign.dblite
 main
 *.o
+lua-5.3.0/liblua.a

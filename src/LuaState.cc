@@ -44,10 +44,6 @@ LuaState::~LuaState() {
   DeregisterCppState(L);
 }
 
-void LuaState::Push(int t){
-  lua_pushnumber(L, t);
-}
-
 void LuaState::Push(lua_CFunction t){
   lua_pushcfunction(L, t);
 }
