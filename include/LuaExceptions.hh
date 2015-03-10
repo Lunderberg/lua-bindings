@@ -20,8 +20,6 @@ Exception(LuaException, LuaExecuteError);
 Exception(LuaExecuteError, LuaFileExecuteError);
 Exception(LuaExecuteError, LuaFunctionExecuteError);
 
-Exception(LuaException, LuaConversionError);
-
 Exception(LuaException, LuaCppCallError);
 
 #undef Exception
