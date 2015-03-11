@@ -8,12 +8,22 @@
 
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
-#include "LuaUtils.hh"
 
 class LuaObject{
 public:
   LuaObject(lua_State* L, int stack_pos=-1);
   virtual ~LuaObject() { }
+
+  template<typename T>
+  static typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type
+  Push(lua_State* L, T t){
+    lua_pushnumber(L, t);
+    return LuaObject(L);
+  }
+
+  static void Push(lua_State* L, lua_CFunction t);
+  static void Push(lua_State* L, const char* string);
+  static void Push(lua_State* L, std::string string);
 
   bool IsNumber();
   bool IsString();
@@ -57,8 +67,8 @@ private:
 
     template<typename V>
     LuaTableReference& operator=(V value){
-      LuaPush(L, key);
-      LuaPush(L, value);
+      LuaObject::Push(L, key);
+      LuaObject::Push(L, value);
       lua_settable(L, table_stack_pos);
       return *this;
     }
@@ -70,7 +80,7 @@ private:
     }
 
     LuaObject Get(){
-      LuaPush(L, key);
+      LuaObject::Push(L, key);
       lua_gettable(L, table_stack_pos);
       return LuaObject(L, -1);
     }

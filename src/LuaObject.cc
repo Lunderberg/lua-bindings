@@ -43,3 +43,15 @@ void LuaObject::MoveToTop(){
 void LuaObject::Pop(){
   lua_remove(L, stack_pos);
 }
+
+void LuaObject::Push(lua_State* L, lua_CFunction t){
+  lua_pushcfunction(L, t);
+}
+
+void LuaObject::Push(lua_State* L, const char* string){
+  lua_pushstring(L, string);
+}
+
+void LuaObject::Push(lua_State* L, std::string string){
+  Push(L, string.c_str());
+}

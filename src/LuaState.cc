@@ -45,12 +45,12 @@ LuaState::~LuaState() {
 }
 
 LuaObject LuaState::Push(lua_CFunction t){
-  LuaPush(L, t);
+  LuaObject::Push(L, t);
   return LuaObject(L, -1);
 }
 
 LuaObject LuaState::Push(const char* string){
-  LuaPush(L, string);
+  LuaObject::Push(L, string);
   return LuaObject(L, -1);
 }
 

@@ -15,7 +15,6 @@
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
-#include "LuaUtils.hh"
 #include "TemplateUtils.hh"
 
 //! Dispatches a call to a C++ function when called from Lua
@@ -155,7 +154,7 @@ public:
    */
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type Push(T t){
-    LuaPush(L, t);
+    LuaObject::Push(L, t);
     return LuaObject(L, -1);
   }
 
