@@ -1,22 +1,19 @@
 #ifndef _LUAUTILS_H_
 #define _LUAUTILS_H_
 
-// Template metaprogramming, described in http://loungecpp.wikidot.com/tips-and-tricks%3aindices
-// Creates a compile-time listing of indices, useful for passing index parameters.
-// To use, declare a function as follows:
-//   template<int... Is>
-//   void func(indices<Is...>);
-// Then call the function as follows:
-//   func(build_indices<5>());
-// This will define the index template variables.
-template<int... Is>
-struct indices {};
+#include <string>
+#include <type_traits>
 
-template<int N, int... Is>
-struct build_indices
-  : build_indices<N-1, N-1, Is...> {};
+#include <lua.hpp>
 
-template<int... Is>
-struct build_indices<0, Is...> : indices<Is...> {};
+template<typename T>
+typename std::enable_if<std::is_arithmetic<T>::value>::type
+LuaPush(lua_State* L, T t){
+  lua_pushnumber(L, t);
+}
+
+void LuaPush(lua_State* L, lua_CFunction t);
+void LuaPush(lua_State* L, const char* string);
+void LuaPush(lua_State* L, std::string string);
 
 #endif /* _LUAUTILS_H_ */

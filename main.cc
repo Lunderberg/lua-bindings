@@ -21,11 +21,19 @@ int sum_integers(int x, int y){
   return x+y;
 }
 
-int cppfunction(lua_State* L){
-  double arg = luaL_checknumber(L,1);
-  lua_pushnumber(L, arg*0.5);
-  return 1;
-}
+class TestClass{
+public:
+  TestClass() : x(0) { }
+  int GetX(){ return x; }
+  void SetX(int x){ this->x = x; }
+
+  void PrintSelf(){ std::cout << "My x is " << x << "." << std::endl; }
+
+private:
+  int x;
+};
+
+
 
 int main(){
   auto L = LuaState::create();
@@ -39,14 +47,6 @@ int main(){
 
   L->Call("lua_func_with_params",5,3);
 
-  cout << "** Execute a C++ function from Lua" << endl;
-  cout << "**** First register the function in Lua" << endl;
-  L->SetGlobal("cppfunction", cppfunction);
-
-  cout << "**** Call a Lua function that uses the C++ function" << endl;
-  auto num_return = L->Call<double>("myfunction", 5);
-  cout << "The return value of the function was " << num_return << endl;
-
   L->SetGlobal("global_var", 5);
   L->Call("print_global");
 
@@ -55,6 +55,19 @@ int main(){
   L->SetGlobal("sum_integers", sum_integers);
   L->Call("test_double_number");
 
+  // Set a Lua table from inside C++
+  auto table = L->NewTable();
+  table["y"] = 5;
+  table["x"] = "hello";
+  L->SetGlobal("c_table", table);
+
+  L->Call("read_table");
+
+  // Read a Lua table from inside C++
+  table = L->GetGlobal("lua_table");
+  std::cout << "lua_table.a = " << table["a"].Cast<int>() << std::endl;
+  std::cout << "lua_table.b = " << table["b"].Cast<std::string>() << std::endl;
+  table.Pop();
 
   return 0;
 }

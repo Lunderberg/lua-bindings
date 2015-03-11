@@ -44,8 +44,23 @@ LuaState::~LuaState() {
   DeregisterCppState(L);
 }
 
-void LuaState::Push(lua_CFunction t){
-  lua_pushcfunction(L, t);
+LuaObject LuaState::Push(lua_CFunction t){
+  LuaPush(L, t);
+  return LuaObject(L, -1);
+}
+
+LuaObject LuaState::Push(const char* string){
+  LuaPush(L, string);
+  return LuaObject(L, -1);
+}
+
+LuaObject LuaState::Push(std::string string){
+  return Push(string.c_str());
+}
+
+LuaObject LuaState::Push(LuaObject obj){
+  obj.MoveToTop();
+  return LuaObject(L, -1);
 }
 
 void LuaState::LoadFile(const char* filename) {
@@ -68,4 +83,9 @@ void LuaState::LoadFile(const char* filename) {
 
 void LuaState::LoadLibs(){
   luaL_openlibs(L);
+}
+
+LuaObject LuaState::NewTable(){
+  lua_newtable(L);
+  return LuaObject(L, -1);
 }

@@ -4,10 +4,6 @@ function myluafunction(times)
    return string.rep("(-)", times)
 end
 
-function myfunction(arg)
-   return cppfunction(arg)
-end
-
 function lua_func_with_params(x,y)
    print(x)
    print(y)
@@ -26,3 +22,12 @@ function test_double_number()
    local y = 10
    print("Sum of "..x.." and "..y.." is "..sum_integers(x,y))
 end
+
+function read_table()
+   print(c_table.x)
+   print(c_table.y)
+end
+
+lua_table = {}
+lua_table.a = 5
+lua_table.b = 'hello'

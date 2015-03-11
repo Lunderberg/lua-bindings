@@ -16,6 +16,7 @@
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
 #include "LuaUtils.hh"
+#include "TemplateUtils.hh"
 
 //! Dispatches a call to a C++ function when called from Lua
 /*! Lua requires a strict C-style function pointer for callbacks.
@@ -91,10 +92,15 @@ public:
     @throws LuaInvalidStackContents The global variable cannot be converted to the requested type.
    */
   template<typename T>
-  T GetGlobal(const char* name){
+  T CastGlobal(const char* name){
+    auto obj = GetGlobal(name);
+    LuaDelayedPop delayed(L, 1);
+    return obj.Cast<T>();
+  }
+
+  LuaObject GetGlobal(const char* name){
     lua_getglobal(L, name);
-    LuaDelayedPop(L, 1);
-    return Read<T>(-1);
+    return LuaObject(L, -1);
   }
 
   //! Calls a Lua function
@@ -123,7 +129,10 @@ public:
     return Read<return_type>();
   }
 
-private:
+  LuaObject NewTable();
+
+public:
+  //private:
   //! Pushes all arguments to the Lua stack
   /*! Pushes each parameter to the Lua stack, in the order given.
     Requires that all parameters can be converted to Lua types.
@@ -145,15 +154,24 @@ private:
     The number must be some arithmetic type.
    */
   template<typename T>
-  typename std::enable_if<std::is_arithmetic<T>::value>::type Push(T t){
-    lua_pushnumber(L, t);
+  typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type Push(T t){
+    LuaPush(L, t);
+    return LuaObject(L, -1);
   }
 
   //! Pushes a lua_CFunction onto the Lua stack
   /*! Pushes a C-style function pointer int(*)(lua_State*).
     This does not register anything in the cpp_functions vector.
    */
-  void Push(lua_CFunction t);
+  LuaObject Push(lua_CFunction t);
+
+  //! Pushes a string onto the Lua stack
+  LuaObject Push(const char* string);
+
+  //! Pushes a string onto the Lua stack
+  LuaObject Push(std::string string);
+
+  LuaObject Push(LuaObject obj);
 
   //! Pushes a C++ function onto the Lua stack.
   /*! Pushes a C++ function onto the Lua stack.
@@ -166,8 +184,8 @@ private:
     Fails at compile time otherwise.
    */
   template<typename RetVal, typename... Params>
-  void Push(RetVal(*func)(Params...)){
-    Push(std::function<RetVal(Params...)>(func));
+  LuaObject Push(RetVal(*func)(Params...)){
+    return Push(std::function<RetVal(Params...)>(func));
   }
 
   //! Pushes a std::function onto the Lua stack.
@@ -178,12 +196,13 @@ private:
     When called, first goes to call_cpp_function, which finds the appropriate std::function to call.
    */
   template<typename RetVal, typename... Params>
-  void Push(std::function<RetVal(Params...)> func){
+  LuaObject Push(std::function<RetVal(Params...)> func){
     Push(cpp_functions.size());
     auto callable_ptr = std::unique_ptr<LuaCallable_Implementation<RetVal, Params...>>(
                                     new LuaCallable_Implementation<RetVal, Params...>(func));
     cpp_functions.push_back(std::move(callable_ptr));
     lua_pushcclosure(L, call_cpp_function, 1);
+    return LuaObject(L, -1);
   }
 
   //! Read value off of the current stack.
