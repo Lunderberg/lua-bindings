@@ -3,12 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-std::shared_ptr<LuaState> LuaState::create(){
-  auto output = std::make_shared<LuaState>(HiddenStruct());
-  return output;
-}
-
-LuaState::LuaState(HiddenStruct) : L(nullptr){
+LuaState::LuaState() : L(nullptr){
   L = luaL_newstate();
 }
 
@@ -16,25 +11,6 @@ LuaState::~LuaState() {
   if(L){
     lua_close(L);
   }
-}
-
-LuaObject LuaState::Push(lua_CFunction t){
-  LuaObject::Push(L, t);
-  return LuaObject(L, -1);
-}
-
-LuaObject LuaState::Push(const char* string){
-  LuaObject::Push(L, string);
-  return LuaObject(L, -1);
-}
-
-LuaObject LuaState::Push(std::string string){
-  return Push(string.c_str());
-}
-
-LuaObject LuaState::Push(LuaObject obj){
-  obj.MoveToTop();
-  return LuaObject(L, -1);
 }
 
 void LuaState::LoadFile(const char* filename) {

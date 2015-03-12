@@ -36,6 +36,7 @@ public:
   static LuaObject Push(lua_State* L, lua_CFunction t);
   static LuaObject Push(lua_State* L, const char* string);
   static LuaObject Push(lua_State* L, std::string string);
+  static LuaObject Push(lua_State* L, LuaObject obj);
   static LuaObject NewTable(lua_State* L);
 
   template<typename RetVal, typename... Params>
@@ -49,9 +50,15 @@ public:
     auto table = NewTable(L);
     table["__call"] = call_cpp_function;
     table["__gc"] = garbage_collect_cpp_function;
+    table["__metatable"] = false;
     lua_setmetatable(L, -2);
 
     return LuaObject(L, -1);
+  }
+
+  template<typename RetVal, typename... Params>
+  static LuaObject Push(lua_State* L, RetVal (*func)(Params...)){
+    return Push(L, std::function<RetVal(Params...)>(func));
   }
 
   bool IsNumber();

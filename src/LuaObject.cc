@@ -58,6 +58,11 @@ LuaObject LuaObject::Push(lua_State* L, std::string string){
   return Push(L, string.c_str());
 }
 
+LuaObject LuaObject::Push(lua_State* L, LuaObject obj){
+  obj.MoveToTop();
+  return LuaObject(L);
+}
+
 LuaObject LuaObject::NewTable(lua_State* L){
   lua_newtable(L);
   return LuaObject(L);

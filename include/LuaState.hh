@@ -17,35 +17,20 @@
 #include "LuaObject.hh"
 #include "TemplateUtils.hh"
 
-class LuaState : public std::enable_shared_from_this<LuaState> {
-  //! Dummy structure for preventing declaration of LuaState on the stack.
-  /*! std::make_shared requires a public constructor.
-    This way, the only constructor available requires a private member,
-      and can therefore only be called from within the class.
-   */
-  struct HiddenStruct { };
+class LuaState {
 public:
 
-  //! Constructs the LuaState, requiring the private HiddenStruct.
-  /*! I would like to make the constructor private, but that breaks std::shared_ptr
-    Instead, this depends on a privately available class.
-   */
-  LuaState(HiddenStruct);
+  //! Constructs the LuaState.
+  LuaState();
 
   //! Destructs the LuaState, removing self from the LuaState::all_states map.
-  /*! Closes the internal lua_State and removes self from LuaState::all_states.
+  /*! Closes the internal lua_State
    */
   ~LuaState();
 
   LuaState(const LuaState&) = delete;
   LuaState(LuaState&&) = delete;
   LuaState& operator=(const LuaState&) = delete;
-
-  //! Creates and returns a shared_ptr to a LuaState
-  /*! For implementation reasons, all LuaState objects must be contained in std::shared_ptr
-    This is guaranteed by restricted all LuaState constructors and instead providing creat().
-   */
-  static std::shared_ptr<LuaState> create();
 
   //! Returns the internal lua_State
   /*! Use this as rarely as possible, if something cannot be done through the framework.
@@ -140,55 +125,13 @@ public:
    */
   void PushMany(){ }
 
-  //! Pushes a number onto the Lua stack
-  /*! Pushes a number onto the Lua stack
-    The number must be some arithmetic type.
+  //! Pushes anything onto the Lua stack
+  /*! Uses LuaObject::Push.
+    I'm lazy, and would rather do "L->Push()" than "LuaObject::Push(L)"
    */
   template<typename T>
-  typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type Push(T t){
+  LuaObject Push(T t){
     LuaObject::Push(L, t);
-    return LuaObject(L);
-  }
-
-  //! Pushes a lua_CFunction onto the Lua stack
-  /*! Pushes a C-style function pointer int(*)(lua_State*).
-    This does not register anything in the cpp_functions vector.
-   */
-  LuaObject Push(lua_CFunction t);
-
-  //! Pushes a string onto the Lua stack
-  LuaObject Push(const char* string);
-
-  //! Pushes a string onto the Lua stack
-  LuaObject Push(std::string string);
-
-  LuaObject Push(LuaObject obj);
-
-  //! Pushes a C++ function onto the Lua stack.
-  /*! Pushes a C++ function onto the Lua stack.
-    Converts to a std::function for consistency, then pushes.
-
-    Requires that all function parameters are convertable from Lua types.
-    Fails at compile time otherwise.
-
-    Requires that function return type is convertable to a Lua type.
-    Fails at compile time otherwise.
-   */
-  template<typename RetVal, typename... Params>
-  LuaObject Push(RetVal(*func)(Params...)){
-    return Push(std::function<RetVal(Params...)>(func));
-  }
-
-  //! Pushes a std::function onto the Lua stack.
-  /*! Pushes a std::function onto the Lua stack.
-    Creates a new LuaCallable_Implementation, which is added to the cpp_functions vector.
-    Pushes a new lua_cclosure with the index of the new function in the cpp_functions vector.
-
-    When called, first goes to call_cpp_function, which finds the appropriate std::function to call.
-   */
-  template<typename RetVal, typename... Params>
-  LuaObject Push(std::function<RetVal(Params...)> func){
-    LuaObject::Push(L, func);
     return LuaObject(L);
   }
 
