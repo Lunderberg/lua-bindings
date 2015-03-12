@@ -60,6 +60,5 @@ void LuaState::LoadLibs(){
 }
 
 LuaObject LuaState::NewTable(){
-  lua_newtable(L);
-  return LuaObject(L, -1);
+  return LuaObject::NewTable(L);
 }

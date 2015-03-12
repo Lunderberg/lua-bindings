@@ -44,14 +44,36 @@ void LuaObject::Pop(){
   lua_remove(L, stack_pos);
 }
 
-void LuaObject::Push(lua_State* L, lua_CFunction t){
+LuaObject LuaObject::Push(lua_State* L, lua_CFunction t){
   lua_pushcfunction(L, t);
+  return LuaObject(L);
 }
 
-void LuaObject::Push(lua_State* L, const char* string){
+LuaObject LuaObject::Push(lua_State* L, const char* string){
   lua_pushstring(L, string);
+  return LuaObject(L);
 }
 
-void LuaObject::Push(lua_State* L, std::string string){
-  Push(L, string.c_str());
+LuaObject LuaObject::Push(lua_State* L, std::string string){
+  return Push(L, string.c_str());
+}
+
+LuaObject LuaObject::NewTable(lua_State* L){
+  lua_newtable(L);
+  return LuaObject(L);
+}
+
+int call_cpp_function(lua_State* L){
+  void* storage = lua_touserdata(L, 1);
+  LuaObject::LuaCallable* callable = *reinterpret_cast<LuaObject::LuaCallable**>(storage);
+  lua_remove(L, 1);
+  int args_returned = callable->call(L);
+  return args_returned;
+}
+
+int garbage_collect_cpp_function(lua_State* L){
+  void* storage = lua_touserdata(L, 1);
+  LuaObject::LuaCallable* callable = *reinterpret_cast<LuaObject::LuaCallable**>(storage);
+  delete callable;
+  return 0;
 }

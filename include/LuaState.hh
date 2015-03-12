@@ -12,7 +12,6 @@
 
 #include <lua.hpp>
 
-#include "LuaCallable.hh"
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
@@ -148,7 +147,7 @@ public:
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type Push(T t){
     LuaObject::Push(L, t);
-    return LuaObject(L, -1);
+    return LuaObject(L);
   }
 
   //! Pushes a lua_CFunction onto the Lua stack
@@ -189,18 +188,8 @@ public:
    */
   template<typename RetVal, typename... Params>
   LuaObject Push(std::function<RetVal(Params...)> func){
-    // Define a new userdata, storing the LuaCallable in it.
-    LuaCallable* callable = new LuaCallable_Implementation<RetVal, Params...>(func);
-    void* userdata = lua_newuserdata(L, sizeof(callable));
-    *reinterpret_cast<LuaCallable**>(userdata) = callable;
-
-    // Create the metatable
-    auto table = NewTable();
-    table["__call"] = call_cpp_function;
-    table["__gc"] = garbage_collect_cpp_function;
-    lua_setmetatable(L, -2);
-
-    return LuaObject(L, -1);
+    LuaObject::Push(L, func);
+    return LuaObject(L);
   }
 
   //! Read value off of the current stack.
