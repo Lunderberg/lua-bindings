@@ -25,6 +25,8 @@
  */
 int call_cpp_function(lua_State* L);
 
+int garbage_collect_cpp_function(lua_State* L);
+
 class LuaState : public std::enable_shared_from_this<LuaState> {
   //! Dummy structure for preventing declaration of LuaState on the stack.
   /*! std::make_shared requires a public constructor.
@@ -57,7 +59,7 @@ public:
 
   //! Returns the internal lua_State
   /*! Use this as rarely as possible, if something cannot be done through the framework.
-    As the framework becomes more fully-featured, this may become a private function.
+    As tpphe framework becomes more fully-featured, this may become a private function.
    */
   lua_State* state() { return L; }
 
@@ -196,11 +198,17 @@ public:
    */
   template<typename RetVal, typename... Params>
   LuaObject Push(std::function<RetVal(Params...)> func){
-    Push(cpp_functions.size());
-    auto callable_ptr = std::unique_ptr<LuaCallable_Implementation<RetVal, Params...>>(
-                                    new LuaCallable_Implementation<RetVal, Params...>(func));
-    cpp_functions.push_back(std::move(callable_ptr));
-    lua_pushcclosure(L, call_cpp_function, 1);
+    // Define a new userdata, storing the LuaCallable in it.
+    LuaCallable* callable = new LuaCallable_Implementation<RetVal, Params...>(func);
+    void* userdata = lua_newuserdata(L, sizeof(callable));
+    *reinterpret_cast<LuaCallable**>(userdata) = callable;
+
+    // Create the metatable
+    auto table = NewTable();
+    table["__call"] = call_cpp_function;
+    table["__gc"] = garbage_collect_cpp_function;
+    lua_setmetatable(L, -2);
+
     return LuaObject(L, -1);
   }
 
@@ -233,7 +241,7 @@ public:
   class LuaCallable{
   public:
     virtual ~LuaCallable() { }
-    virtual int call(std::shared_ptr<LuaState> L) = 0;
+    virtual int call(lua_State* L) = 0;
   };
 
   //! Wraps a std::function, converting arguments and return value to/from the Lua state.
@@ -255,18 +263,18 @@ public:
       @throws LuaCppCallError The number of arguments passed from Lua is incorrect.
       @throws LuaInvalidStackContents The return valud could not be converted to the requested type.
      */
-    virtual int call(std::shared_ptr<LuaState> L){
+    virtual int call(lua_State* L){
       return call_helper(build_indices<sizeof...(Params)>(), L);
     }
 
   private:
     template<int... Indices>
-    int call_helper(indices<Indices...>, std::shared_ptr<LuaState> L){
-      if(lua_gettop(L->state()) != sizeof...(Params)){
+    int call_helper(indices<Indices...>, lua_State* L){
+      if(lua_gettop(L) != sizeof...(Params)){
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
-      RetVal output = func(L->Read<Params>(Indices+1)...);
-      L->Push(output);
+      RetVal output = func(LuaObject(L, Indices+1).Cast<Params>()...);
+      LuaObject::Push(L, output);
       return 1;
     }
 

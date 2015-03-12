@@ -6,10 +6,18 @@
 std::map<lua_State*, std::weak_ptr<LuaState> > LuaState::all_states;
 
 int call_cpp_function(lua_State* L){
-  auto state = LuaState::GetCppState(L);
-  int function_index = LuaObject(L, lua_upvalueindex(1)).Cast<int>();
-  int args_returned = state->cpp_functions.at(function_index)->call(state);
+  void* storage = lua_touserdata(L, 1);
+  LuaState::LuaCallable* callable = *reinterpret_cast<LuaState::LuaCallable**>(storage);
+  lua_remove(L, 1);
+  int args_returned = callable->call(L);
   return args_returned;
+}
+
+int garbage_collect_cpp_function(lua_State* L){
+  void* storage = lua_touserdata(L, 1);
+  LuaState::LuaCallable* callable = *reinterpret_cast<LuaState::LuaCallable**>(storage);
+  delete callable;
+  return 0;
 }
 
 void LuaState::RegisterCppState(std::shared_ptr<LuaState> state){
