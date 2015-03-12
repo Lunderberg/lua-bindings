@@ -107,8 +107,7 @@ public:
 
   LuaObject NewTable();
 
-public:
-  //private:
+private:
   //! Pushes all arguments to the Lua stack
   /*! Pushes each parameter to the Lua stack, in the order given.
     Requires that all parameters can be converted to Lua types.
