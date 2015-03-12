@@ -9,6 +9,7 @@
 
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
+#include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
 //! Dispatches a call to a C++ function when called from Lua
@@ -47,10 +48,13 @@ public:
     *reinterpret_cast<LuaCallable**>(userdata) = callable;
 
     // Create the metatable
-    auto table = NewTable(L);
-    table["__call"] = call_cpp_function;
-    table["__gc"] = garbage_collect_cpp_function;
-    table["__metatable"] = false;
+    int metatable_uninitialized = luaL_newmetatable(L, cpp_function_registry_entry.c_str());
+    if(metatable_uninitialized){
+      LuaObject table(L);
+      table["__call"] = call_cpp_function;
+      table["__gc"] = garbage_collect_cpp_function;
+      table["__metatable"] = "Access restricted";
+    }
     lua_setmetatable(L, -2);
 
     return LuaObject(L, -1);
