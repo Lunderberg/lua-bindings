@@ -3,41 +3,8 @@
 #include <cassert>
 #include <iostream>
 
-std::map<lua_State*, std::weak_ptr<LuaState> > LuaState::all_states;
-
-int call_cpp_function(lua_State* L){
-  void* storage = lua_touserdata(L, 1);
-  LuaState::LuaCallable* callable = *reinterpret_cast<LuaState::LuaCallable**>(storage);
-  lua_remove(L, 1);
-  int args_returned = callable->call(L);
-  return args_returned;
-}
-
-int garbage_collect_cpp_function(lua_State* L){
-  void* storage = lua_touserdata(L, 1);
-  LuaState::LuaCallable* callable = *reinterpret_cast<LuaState::LuaCallable**>(storage);
-  delete callable;
-  return 0;
-}
-
-void LuaState::RegisterCppState(std::shared_ptr<LuaState> state){
-  assert(all_states.count(state->L) == 0);
-  all_states[state->L] = state;
-}
-
-void LuaState::DeregisterCppState(lua_State* c_state){
-  assert(all_states.count(c_state) == 1);
-  all_states.erase(c_state);
-}
-
-std::shared_ptr<LuaState> LuaState::GetCppState(lua_State* c_state){
-  assert(all_states.count(c_state) == 1);
-  return all_states[c_state].lock();
-}
-
 std::shared_ptr<LuaState> LuaState::create(){
   auto output = std::make_shared<LuaState>(HiddenStruct());
-  LuaState::RegisterCppState(output);
   return output;
 }
 
@@ -49,7 +16,6 @@ LuaState::~LuaState() {
   if(L){
     lua_close(L);
   }
-  DeregisterCppState(L);
 }
 
 LuaObject LuaState::Push(lua_CFunction t){
