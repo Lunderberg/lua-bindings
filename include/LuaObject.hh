@@ -38,12 +38,13 @@ public:
   static LuaObject Push(lua_State* L, const char* string);
   static LuaObject Push(lua_State* L, std::string string);
   static LuaObject Push(lua_State* L, LuaObject obj);
+
   static LuaObject NewTable(lua_State* L);
 
   template<typename RetVal, typename... Params>
   static LuaObject Push(lua_State* L, std::function<RetVal(Params...)> func){
     // Define a new userdata, storing the LuaCallable in it.
-    LuaCallable* callable = new LuaCallable_Implementation<RetVal, Params...>(func);
+    LuaCallable* callable = new LuaCallable_Implementation<RetVal(Params...)>(func);
     void* userdata = lua_newuserdata(L, sizeof(callable));
     *reinterpret_cast<LuaCallable**>(userdata) = callable;
 
@@ -135,7 +136,7 @@ public:
   LuaTableReference<std::string> operator[](std::string key);
   LuaTableReference<int> operator[](int key);
 
-private:
+public:
   friend class LuaState;
 
   int LuaType();
@@ -154,13 +155,16 @@ private:
     virtual int call(lua_State* L) = 0;
   };
 
+  template<typename T>
+  class LuaCallable_Implementation;
+
   //! Wraps a std::function, converting arguments and return value to/from the Lua state.
   /*! Templated on the parameters and return type of the function.
     If either the parameters or the return type are not convertable to Lua types,
     it will fail to compile.
   */
   template<typename RetVal, typename... Params>
-  class LuaCallable_Implementation : public LuaCallable {
+  class LuaCallable_Implementation<RetVal(Params...)> : public LuaCallable  {
   public:
     LuaCallable_Implementation(std::function<RetVal(Params...)> function) :
       func(function) { }
@@ -174,22 +178,35 @@ private:
       @throws LuaInvalidStackContents The return valud could not be converted to the requested type.
     */
     virtual int call(lua_State* L){
-      return call_helper(build_indices<sizeof...(Params)>(), L);
+      return call_helper_function(build_indices<sizeof...(Params)>(), func, L);
     }
 
   private:
-    template<int... Indices>
-    int call_helper(indices<Indices...>, lua_State* L){
-      if(lua_gettop(L) != sizeof...(Params)){
-        throw LuaCppCallError("Incorrect number of arguments passed");
-      }
-      RetVal output = func(LuaObject(L, Indices+1).Cast<Params>()...);
-      LuaObject::Push(L, output);
-      return 1;
-    }
-
     std::function<RetVal(Params...)> func;
   };
+
+  template<int... Indices, typename RetVal, typename... Params>
+  static int call_helper_function(indices<Indices...>, std::function<RetVal(Params...)> func, lua_State* L){
+    if(lua_gettop(L) != sizeof...(Params)){
+      throw LuaCppCallError("Incorrect number of arguments passed");
+    }
+    RetVal output = func(LuaObject(L, Indices+1).Cast<Params>()...);
+    LuaObject::Push(L, output);
+    return 1;
+  }
+
+  template<int... Indices, typename... Params>
+  static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
+    if(lua_gettop(L) != sizeof...(Params)){
+      throw LuaCppCallError("Incorrect number of arguments passed");
+    }
+    func(LuaObject(L, Indices+1).Cast<Params>()...);
+    return 0;
+  }
+
+
+
 };
+
 
 #endif /* _LUAOBJECT_H_ */
