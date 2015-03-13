@@ -17,6 +17,10 @@ int double_integer(int x){
   return 2*x;
 }
 
+void print_integer(int x){
+  std::cout << "In C++, integer is " << x << std::endl;
+}
+
 int sum_integers(int x, int y){
   return x+y;
 }
@@ -32,8 +36,6 @@ public:
 private:
   int x;
 };
-
-
 
 int main(){
   LuaState L;
@@ -53,7 +55,8 @@ int main(){
   L.SetGlobal("double_number", double_number);
   L.SetGlobal("double_integer", double_integer);
   L.SetGlobal("sum_integers", sum_integers);
-  L.Call("test_double_number");
+  L.SetGlobal("print_integer", print_integer);
+  L.Call("test_cpp_functions");
 
   // Set a Lua table from inside C++
   auto table = L.NewTable();
@@ -68,6 +71,14 @@ int main(){
   std::cout << "lua_table.a = " << table["a"].Cast<int>() << std::endl;
   std::cout << "lua_table.b = " << table["b"].Cast<std::string>() << std::endl;
   table.Pop();
+
+  MakeClass<TestClass>(L.state(), "TestClass")
+    .AddConstructor<>("make_TestClass")
+    .AddMethod("GetX", &TestClass::GetX)
+    .AddMethod("SetX", &TestClass::SetX)
+    .AddMethod("PrintSelf", &TestClass::PrintSelf);
+  L.Call("test_classes");
+
 
   return 0;
 }
