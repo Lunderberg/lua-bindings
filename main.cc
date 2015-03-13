@@ -25,6 +25,10 @@ int sum_integers(int x, int y){
   return x+y;
 }
 
+void print_hello(){
+  std::cout << "hello" << std::endl;
+}
+
 class TestClass{
 public:
   TestClass() : x(0) { }
@@ -56,6 +60,7 @@ int main(){
   L.SetGlobal("double_integer", double_integer);
   L.SetGlobal("sum_integers", sum_integers);
   L.SetGlobal("print_integer", print_integer);
+  L.SetGlobal("print_hello", print_hello);
   L.Call("test_cpp_functions");
 
   // Set a Lua table from inside C++

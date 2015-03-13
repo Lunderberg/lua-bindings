@@ -23,7 +23,6 @@ int call_cpp_function(lua_State* L);
 int garbage_collect_cpp_function(lua_State* L);
 
 class LuaObject{
-public:
   template<typename T>
   class LuaTableReference{
   public:
@@ -88,31 +87,34 @@ public:
       @throws LuaInvalidStackContents The return valud could not be converted to the requested type.
     */
     virtual int call(lua_State* L){
+      if(lua_gettop(L) != sizeof...(Params)){
+        throw LuaCppCallError("Incorrect number of arguments passed");
+      }
       return call_helper_function(build_indices<sizeof...(Params)>(), func, L);
     }
 
   private:
     std::function<RetVal(Params...)> func;
+
+    template<int... Indices, typename RetVal_func>
+    static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
+                                    lua_State* L){
+      RetVal_func output = func(LuaObject(L, Indices+1).Cast<Params>()...);
+      LuaObject::Push(L, output);
+      return 1;
+    }
+
+    // g++ incorrectly flags lua_State* L as being unused when Params... is empty
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+    template<int... Indices>
+    static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
+      func(LuaObject(L, Indices+1).Cast<Params>()...);
+      return 0;
+    }
+    #pragma GCC diagnostic pop
   };
 
-  template<int... Indices, typename RetVal, typename... Params>
-  static int call_helper_function(indices<Indices...>, std::function<RetVal(Params...)> func, lua_State* L){
-    if(lua_gettop(L) != sizeof...(Params)){
-      throw LuaCppCallError("Incorrect number of arguments passed");
-    }
-    RetVal output = func(LuaObject(L, Indices+1).Cast<Params>()...);
-    LuaObject::Push(L, output);
-    return 1;
-  }
-
-  template<int... Indices, typename... Params>
-  static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
-    if(lua_gettop(L) != sizeof...(Params)){
-      throw LuaCppCallError("Incorrect number of arguments passed");
-    }
-    func(LuaObject(L, Indices+1).Cast<Params>()...);
-    return 0;
-  }
 
   template<typename ClassType, typename T>
   class LuaCallable_MemberFunction;
@@ -123,42 +125,38 @@ public:
     LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...))
     : func(func){ }
     virtual int call(lua_State* L){
-      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, func);
+      if(lua_gettop(L) != sizeof...(Params) + 1){
+        throw LuaCppCallError("Incorrect number of arguments passed");
+      }
+
+      void* storage = lua_touserdata(L, 1);
+      ClassType* obj = *reinterpret_cast<ClassType**>(storage);
+      lua_remove(L, 1);
+
+      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, obj, func);
     }
   private:
     RetVal (ClassType::*func)(Params...);
+
+    template<int... Indices, typename RetVal_func>
+    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
+                                           RetVal_func (ClassType::*func)(Params...)){
+      RetVal output = (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
+      LuaObject::Push(L, output);
+      return 1;
+    }
+
+    // g++ incorrectly flags lua_State* L as being unused when Params... is empty
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+    template<int... Indices>
+    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
+                                           void (ClassType::*func)(Params...)){
+      (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
+      return 0;
+    }
+    #pragma GCC diagnostic pop
   };
-
-  template<int... Indices, typename ClassType, typename RetVal, typename... Params>
-  static int call_member_function_helper(indices<Indices...>, lua_State* L, RetVal (ClassType::*func)(Params...)){
-    if(lua_gettop(L) != sizeof...(Params) + 1){
-      throw LuaCppCallError("Incorrect number of arguments passed");
-    }
-
-    void* storage = lua_touserdata(L, 1);
-    ClassType* obj = *reinterpret_cast<ClassType**>(storage);
-    lua_remove(L, 1);
-
-    RetVal output = (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
-    LuaObject::Push(L, output);
-
-    return 1;
-  }
-
-  template<int... Indices, typename ClassType, typename... Params>
-  static int call_member_function_helper(indices<Indices...>, lua_State* L, void (ClassType::*func)(Params...)){
-    if(lua_gettop(L) != sizeof...(Params) + 1){
-      throw LuaCppCallError("Incorrect number of arguments passed");
-    }
-
-    void* storage = lua_touserdata(L, 1);
-    ClassType* obj = *reinterpret_cast<ClassType**>(storage);
-    lua_remove(L, 1);
-
-    (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
-
-    return 0;
-  }
 
   template<typename ClassType>
   class LuaCallable_ObjectDeleter : public LuaCallable {
@@ -181,28 +179,29 @@ public:
     LuaCallable_ObjectConstructor(std::string metatable_name)
       : metatable_name(metatable_name) { }
     virtual int call(lua_State* L){
-      return call_constructor_helper<ClassType, Params...>(build_indices<sizeof...(Params)>(),
-                                                           L, metatable_name);
+      return call_constructor_helper(build_indices<sizeof...(Params)>(), L, metatable_name);
     }
   private:
     std::string metatable_name;
+
+    template<int... Indices>
+    static int call_constructor_helper(indices<Indices...>, lua_State* L, std::string metatable_name){
+      if(lua_gettop(L) != sizeof...(Params)){
+        throw LuaCppCallError("Incorrect number of arguments passed");
+      }
+
+      ClassType* obj = new ClassType(LuaObject(L, Indices+1).Cast<Params>()...);
+      void* userdata = lua_newuserdata(L, sizeof(obj));
+      *reinterpret_cast<ClassType**>(userdata) = obj;
+
+      luaL_newmetatable(L, metatable_name.c_str());
+      lua_setmetatable(L, -2);
+
+      return 1;
+    }
   };
 
-  template<typename ClassType, typename... Params, int... Indices>
-  static int call_constructor_helper(indices<Indices...>, lua_State* L, std::string metatable_name){
-    if(lua_gettop(L) != sizeof...(Params)){
-      throw LuaCppCallError("Incorrect number of arguments passed");
-    }
 
-    ClassType* obj = new ClassType(LuaObject(L, Indices+1).Cast<Params>()...);
-    void* userdata = lua_newuserdata(L, sizeof(obj));
-    *reinterpret_cast<ClassType**>(userdata) = obj;
-
-    luaL_newmetatable(L, metatable_name.c_str());
-    lua_setmetatable(L, -2);
-
-    return 1;
-  }
 
 public:
   LuaObject(lua_State* L, int stack_pos=-1);
