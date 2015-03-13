@@ -77,7 +77,7 @@ int main(){
   std::cout << "lua_table.b = " << table["b"].Cast<std::string>() << std::endl;
   table.Pop();
 
-  MakeClass<TestClass>(L.state(), "TestClass")
+  L.MakeClass<TestClass>("TestClass")
     .AddConstructor<>("make_TestClass")
     .AddMethod("GetX", &TestClass::GetX)
     .AddMethod("SetX", &TestClass::SetX)

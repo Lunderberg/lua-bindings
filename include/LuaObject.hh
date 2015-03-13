@@ -22,7 +22,10 @@ int call_cpp_function(lua_State* L);
 
 int garbage_collect_cpp_function(lua_State* L);
 
-class LuaObject{
+class Lua{
+public:
+  class LuaObject;
+
   template<typename T>
   class LuaTableReference{
   public:
@@ -31,8 +34,8 @@ class LuaObject{
 
     template<typename V>
     LuaTableReference& operator=(V value){
-      LuaObject::Push(L, key);
-      LuaObject::Push(L, value);
+      Push(L, key);
+      Push(L, value);
       lua_settable(L, table_stack_pos);
       return *this;
     }
@@ -44,7 +47,7 @@ class LuaObject{
     }
 
     LuaObject Get(){
-      LuaObject::Push(L, key);
+      Push(L, key);
       lua_gettable(L, table_stack_pos);
       return LuaObject(L, -1);
     }
@@ -54,6 +57,58 @@ class LuaObject{
     int table_stack_pos;
     T key;
   };
+
+  class LuaObject{
+  public:
+    LuaObject(lua_State* L, int stack_pos=-1);
+    virtual ~LuaObject() { }
+
+    bool IsNumber();
+    bool IsString();
+    bool IsFunction();
+    bool IsNil();
+    bool IsBoolean();
+    bool IsTable();
+    bool IsUserData();
+    bool IsLightUserData();
+    bool IsThread();
+
+    // Yucky template usage so that I can have compile-time checks
+    //   of whether each cast is available.
+    template<typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value, T>::type Cast() {
+      if(IsNumber()){
+        return lua_tonumber(L, stack_pos);
+      } else {
+        throw LuaInvalidStackContents("Stack did not contain a number");
+      }
+    }
+
+    template<typename T>
+    typename std::enable_if<std::is_same<T, std::string>::value, T>::type Cast(){
+      if(IsString()){
+        return lua_tostring(L, stack_pos);
+      } else {
+        throw LuaInvalidStackContents("Stack did not contain a string");
+      }
+    }
+
+    void MoveToTop();
+    void Pop();
+
+    LuaTableReference<std::string> operator[](std::string key);
+    LuaTableReference<int> operator[](int key);
+
+  private:
+    friend class LuaState;
+
+    int LuaType();
+
+    lua_State* L;
+    int stack_pos;
+  };
+
+
 
   //! Abstract base class for callable functions.
   /*! Allows for a single call signature regardless of the wrapped function.
@@ -100,7 +155,7 @@ class LuaObject{
     static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
                                     lua_State* L){
       RetVal_func output = func(LuaObject(L, Indices+1).Cast<Params>()...);
-      LuaObject::Push(L, output);
+      Push(L, output);
       return 1;
     }
 
@@ -142,7 +197,7 @@ class LuaObject{
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
                                            RetVal_func (ClassType::*func)(Params...)){
       RetVal output = (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
-      LuaObject::Push(L, output);
+      Push(L, output);
       return 1;
     }
 
@@ -201,12 +256,6 @@ class LuaObject{
     }
   };
 
-
-
-public:
-  LuaObject(lua_State* L, int stack_pos=-1);
-  virtual ~LuaObject() { }
-
   template<typename T>
   static typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type
   Push(lua_State* L, T t){
@@ -256,95 +305,51 @@ public:
     return Push(L, std::function<RetVal(Params...)>(func));
   }
 
-  bool IsNumber();
-  bool IsString();
-  bool IsFunction();
-  bool IsNil();
-  bool IsBoolean();
-  bool IsTable();
-  bool IsUserData();
-  bool IsLightUserData();
-  bool IsThread();
-
-  // Yucky template usage so that I can have compile-time checks
-  //   of whether each cast is available.
-  template<typename T>
-  typename std::enable_if<std::is_arithmetic<T>::value, T>::type Cast() {
-    if(IsNumber()){
-      return lua_tonumber(L, stack_pos);
-    } else {
-      throw LuaInvalidStackContents("Stack did not contain a number");
-    }
-  }
-
-  template<typename T>
-  typename std::enable_if<std::is_same<T, std::string>::value, T>::type Cast(){
-    if(IsString()){
-      return lua_tostring(L, stack_pos);
-    } else {
-      throw LuaInvalidStackContents("Stack did not contain a string");
-    }
-  }
-
-  void MoveToTop();
-  void Pop();
-
-  LuaTableReference<std::string> operator[](std::string key);
-  LuaTableReference<int> operator[](int key);
-
-
-
-private:
-  friend class LuaState;
-
-  int LuaType();
-
-  lua_State* L;
-  int stack_pos;
-
   friend int call_cpp_function(lua_State*);
   friend int garbage_collect_cpp_function(lua_State*);
-};
 
-template<typename ClassType>
-class MakeClass {
-public:
-  MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L){
-    luaL_newmetatable(L, name.c_str());
-    metatable = LuaObject(L);
-    metatable["__gc"] = new LuaObject::LuaCallable_ObjectDeleter<ClassType>();
-    metatable["__metatable"] = "Access restricted";
+  template<typename ClassType>
+  class MakeClass {
+  public:
+    MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L){
+      luaL_newmetatable(L, name.c_str());
+      metatable = LuaObject(L);
+      metatable["__gc"] = new LuaCallable_ObjectDeleter<ClassType>();
+      metatable["__metatable"] = "Access restricted";
 
-    index = LuaObject::NewTable(L);
-  }
-  ~MakeClass(){
-    metatable["__index"] = index;
-    lua_pop(L, 1);
-  }
-
-  template<typename RetVal, typename... Params>
-  MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...)){
-    index[method_name] = func;
-    return *this;
-  }
-
-  template<typename... Params>
-  MakeClass& AddConstructor(std::string constructor_name = ""){
-    if(constructor_name.size() == 0){
-      constructor_name = name;
+      index = NewTable(L);
     }
-    LuaObject::Push(L, new LuaObject::LuaCallable_ObjectConstructor<ClassType(Params...)>(name));
-    lua_setglobal(L, constructor_name.c_str());
+    ~MakeClass(){
+      metatable["__index"] = index;
+      lua_pop(L, 1);
+    }
 
-    return *this;
-  }
+    template<typename RetVal, typename... Params>
+    MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...)){
+      index[method_name] = func;
+      return *this;
+    }
 
-private:
-  lua_State* L;
-  std::string name;
-  LuaObject metatable;
-  LuaObject index;
+    template<typename... Params>
+    MakeClass& AddConstructor(std::string constructor_name = ""){
+      if(constructor_name.size() == 0){
+        constructor_name = name;
+      }
+      Push(L, new LuaCallable_ObjectConstructor<ClassType(Params...)>(name));
+      lua_setglobal(L, constructor_name.c_str());
+
+      return *this;
+    }
+
+  private:
+    lua_State* L;
+    std::string name;
+    LuaObject metatable;
+    LuaObject index;
+  };
 };
+
+
 
 
 #endif /* _LUAOBJECT_H_ */

@@ -74,9 +74,9 @@ public:
     return obj.Cast<T>();
   }
 
-  LuaObject GetGlobal(const char* name){
+  Lua::LuaObject GetGlobal(const char* name){
     lua_getglobal(L, name);
-    return LuaObject(L, -1);
+    return Lua::LuaObject(L, -1);
   }
 
   //! Calls a Lua function
@@ -105,7 +105,12 @@ public:
     return Read<return_type>();
   }
 
-  LuaObject NewTable();
+  Lua::LuaObject NewTable();
+
+  template<typename ClassType>
+  Lua::MakeClass<ClassType> MakeClass(std::string name){
+    return Lua::MakeClass<ClassType>(L, name);
+  }
 
 private:
   //! Pushes all arguments to the Lua stack
@@ -129,9 +134,8 @@ private:
     I'm lazy, and would rather do "L->Push()" than "LuaObject::Push(L)"
    */
   template<typename T>
-  LuaObject Push(T t){
-    LuaObject::Push(L, t);
-    return LuaObject(L);
+  Lua::LuaObject Push(T t){
+    return Lua::Push(L, t);
   }
 
   //! Read value off of the current stack.
@@ -145,7 +149,7 @@ private:
   template<typename T>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
   Read(int stack_pos = -1){
-    LuaObject obj(L, stack_pos);
+    Lua::LuaObject obj(L, stack_pos);
     return obj.Cast<T>();
   }
 

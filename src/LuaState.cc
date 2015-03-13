@@ -35,6 +35,6 @@ void LuaState::LoadLibs(){
   luaL_openlibs(L);
 }
 
-LuaObject LuaState::NewTable(){
-  return LuaObject::NewTable(L);
+Lua::LuaObject LuaState::NewTable(){
+  return Lua::NewTable(L);
 }
