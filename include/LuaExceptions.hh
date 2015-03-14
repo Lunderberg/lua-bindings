@@ -21,6 +21,7 @@ Exception(LuaExecuteError, LuaFileExecuteError);
 Exception(LuaExecuteError, LuaFunctionExecuteError);
 
 Exception(LuaException, LuaCppCallError);
+Exception(LuaCppCallError, LuaIncorrectUserData);
 
 #undef Exception
 

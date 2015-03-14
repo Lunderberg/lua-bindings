@@ -5,6 +5,7 @@
 
 #include <lua.hpp>
 
+#include "LuaCallable_MemberFunction.hh"
 #include "LuaCallable_ObjectConstructor.hh"
 #include "LuaCallable_ObjectDeleter.hh"
 #include "LuaObject.hh"
@@ -29,7 +30,7 @@ namespace Lua{
 
     template<typename RetVal, typename... Params>
     MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...)){
-      index[method_name] = func;
+      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func, name);
       return *this;
     }
 

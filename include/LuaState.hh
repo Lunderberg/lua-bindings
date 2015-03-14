@@ -22,7 +22,6 @@
 #include "LuaObject.hh"
 #include "LuaPushRead.hh"
 #include "LuaTableReference.hh"
-//#include "LuaWayTooBig.hh"
 #include "TemplateUtils.hh"
 
 namespace Lua{

@@ -1,6 +1,8 @@
 #ifndef _LUACALLABLE_MEMBERFUNCTION_H_
 #define _LUACALLABLE_MEMBERFUNCTION_H_
 
+#include <string>
+
 #include <lua.hpp>
 
 #include "LuaCallable.hh"
@@ -16,14 +18,19 @@ namespace Lua{
   template<typename ClassType, typename RetVal, typename... Params>
   class LuaCallable_MemberFunction<ClassType, RetVal(Params...)> : public LuaCallable {
   public:
-    LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...))
-    : func(func){ }
+    LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...), std::string class_name)
+    : func(func), class_name(class_name) { }
     virtual int call(lua_State* L){
       if(lua_gettop(L) != sizeof...(Params) + 1){
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      void* storage = lua_touserdata(L, 1);
+      void* storage = luaL_testudata(L, 1, class_name.c_str());
+
+      if(!storage){
+        throw LuaIncorrectUserData("Called method using incorrect type");
+      }
+
       ClassType* obj = *reinterpret_cast<ClassType**>(storage);
       lua_remove(L, 1);
 
@@ -31,6 +38,7 @@ namespace Lua{
     }
   private:
     RetVal (ClassType::*func)(Params...);
+    std::string class_name;
 
     template<int... Indices, typename RetVal_func>
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,

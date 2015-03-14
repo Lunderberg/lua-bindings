@@ -45,15 +45,6 @@ namespace Lua{
     Push(L, callable);
   }
 
-
-  template<typename ClassType, typename T>
-  class LuaCallable_MemberFunction;
-  template<typename ClassType, typename RetVal, typename... Params>
-  void Push(lua_State* L, RetVal (ClassType::*func)(Params...)){
-    LuaCallable* callable = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
-    Push(L, callable);
-  }
-
   template<typename RetVal, typename... Params>
   void Push(lua_State* L, RetVal (*func)(Params...)){
     Push(L, std::function<RetVal(Params...)>(func));
