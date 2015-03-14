@@ -22,41 +22,47 @@ int call_cpp_function(lua_State* L);
 
 int garbage_collect_cpp_function(lua_State* L);
 
-class Lua{
-public:
+namespace Lua{
+  template<typename T>
+  class LuaTableReference;
+
   class LuaObject;
+  class LuaCallable;
+
+
+  LuaObject Push(lua_State* L, lua_CFunction t);
+  LuaObject Push(lua_State* L, const char* string);
+  LuaObject Push(lua_State* L, std::string string);
+  LuaObject Push(lua_State* L, LuaObject obj);
+  LuaObject Push(lua_State* L, LuaCallable* callable);
 
   template<typename T>
-  class LuaTableReference{
-  public:
-    LuaTableReference(lua_State* L, int table_stack_pos, T key)
-      : L(L), table_stack_pos(table_stack_pos), key(key) { }
+  typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type
+  Push(lua_State* L, T t);
 
-    template<typename V>
-    LuaTableReference& operator=(V value){
-      Push(L, key);
-      Push(L, value);
-      lua_settable(L, table_stack_pos);
-      return *this;
-    }
+  template<typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, std::function<RetVal(Params...)> func);
 
-    template<typename RetVal>
-    RetVal Cast(){
-      LuaDelayedPop delayed(L, 1);
-      return Get().Cast<RetVal>();
-    }
+  template<typename ClassType, typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, RetVal (ClassType::*func)(Params...));
 
-    LuaObject Get(){
-      Push(L, key);
-      lua_gettable(L, table_stack_pos);
-      return LuaObject(L, -1);
-    }
+  template<typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, RetVal (*func)(Params...));
 
-  private:
-    lua_State* L;
-    int table_stack_pos;
-    T key;
-  };
+
+
+  LuaObject NewTable(lua_State* L);
+
+
+
+  template<typename T>
+  class LuaCallable_Implementation;
+  template<typename ClassType, typename T>
+  class LuaCallable_MemberFunction;
+  template<typename ClassType>
+  class LuaCallable_ObjectDeleter;
+  template<typename T>
+  class LuaCallable_ObjectConstructor;
 
   class LuaObject{
   public:
@@ -107,6 +113,63 @@ public:
     lua_State* L;
     int stack_pos;
   };
+
+
+  template<typename T>
+  class LuaTableReference{
+  public:
+    LuaTableReference(lua_State* L, int table_stack_pos, T key)
+      : L(L), table_stack_pos(table_stack_pos), key(key) { }
+
+    template<typename V>
+    LuaTableReference& operator=(V value){
+      Push(L, key);
+      Push(L, value);
+      lua_settable(L, table_stack_pos);
+      return *this;
+    }
+
+    template<typename RetVal>
+    RetVal Cast(){
+      LuaDelayedPop delayed(L, 1);
+      return Get().Cast<RetVal>();
+    }
+
+    LuaObject Get(){
+      Push(L, key);
+      lua_gettable(L, table_stack_pos);
+      return LuaObject(L, -1);
+    }
+
+  private:
+    lua_State* L;
+    int table_stack_pos;
+    T key;
+  };
+
+  template<typename T>
+  typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type
+  Push(lua_State* L, T t){
+    lua_pushnumber(L, t);
+    return LuaObject(L);
+  }
+
+  template<typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, std::function<RetVal(Params...)> func){
+    LuaCallable* callable = new LuaCallable_Implementation<RetVal(Params...)>(func);
+    return Push(L, callable);
+  }
+
+  template<typename ClassType, typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, RetVal (ClassType::*func)(Params...)){
+    LuaCallable* callable = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
+    return Push(L, callable);
+  }
+
+  template<typename RetVal, typename... Params>
+  LuaObject Push(lua_State* L, RetVal (*func)(Params...)){
+    return Push(L, std::function<RetVal(Params...)>(func));
+  }
 
 
 
@@ -225,9 +288,6 @@ public:
     }
   };
 
-  template<typename T>
-  class LuaCallable_ObjectConstructor;
-
   template<typename ClassType, typename... Params>
   class LuaCallable_ObjectConstructor<ClassType(Params...)> : public LuaCallable {
   public:
@@ -256,57 +316,7 @@ public:
     }
   };
 
-  template<typename T>
-  static typename std::enable_if<std::is_arithmetic<T>::value, LuaObject>::type
-  Push(lua_State* L, T t){
-    lua_pushnumber(L, t);
-    return LuaObject(L);
-  }
 
-  static LuaObject Push(lua_State* L, lua_CFunction t);
-  static LuaObject Push(lua_State* L, const char* string);
-  static LuaObject Push(lua_State* L, std::string string);
-  static LuaObject Push(lua_State* L, LuaObject obj);
-
-  static LuaObject NewTable(lua_State* L);
-
-  static LuaObject Push(lua_State* L, LuaCallable* callable){
-    // Define a new userdata, storing the LuaCallable in it.
-    void* userdata = lua_newuserdata(L, sizeof(callable));
-    *reinterpret_cast<LuaCallable**>(userdata) = callable;
-
-    // Create the metatable
-    int metatable_uninitialized = luaL_newmetatable(L, cpp_function_registry_entry.c_str());
-    if(metatable_uninitialized){
-      LuaObject table(L);
-      table["__call"] = call_cpp_function;
-      table["__gc"] = garbage_collect_cpp_function;
-      table["__metatable"] = "Access restricted";
-    }
-    lua_setmetatable(L, -2);
-
-    return LuaObject(L, -1);
-  }
-
-  template<typename RetVal, typename... Params>
-  static LuaObject Push(lua_State* L, std::function<RetVal(Params...)> func){
-    LuaCallable* callable = new LuaCallable_Implementation<RetVal(Params...)>(func);
-    return Push(L, callable);
-  }
-
-  template<typename ClassType, typename RetVal, typename... Params>
-  static LuaObject Push(lua_State* L, RetVal (ClassType::*func)(Params...)){
-    LuaCallable* callable = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
-    return Push(L, callable);
-  }
-
-  template<typename RetVal, typename... Params>
-  static LuaObject Push(lua_State* L, RetVal (*func)(Params...)){
-    return Push(L, std::function<RetVal(Params...)>(func));
-  }
-
-  friend int call_cpp_function(lua_State*);
-  friend int garbage_collect_cpp_function(lua_State*);
 
   template<typename ClassType>
   class MakeClass {
