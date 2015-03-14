@@ -3,17 +3,17 @@
 #include <cassert>
 #include <iostream>
 
-LuaState::LuaState() : L(nullptr){
+Lua::LuaState::LuaState() : L(nullptr){
   L = luaL_newstate();
 }
 
-LuaState::~LuaState() {
+Lua::LuaState::~LuaState() {
   if(L){
     lua_close(L);
   }
 }
 
-void LuaState::LoadFile(const char* filename) {
+void Lua::LuaState::LoadFile(const char* filename) {
   int load_result = luaL_loadfile(L, filename);
   if(load_result){
     auto error_message = Read<std::string>();
@@ -31,10 +31,11 @@ void LuaState::LoadFile(const char* filename) {
   }
 }
 
-void LuaState::LoadLibs(){
+void Lua::LuaState::LoadLibs(){
   luaL_openlibs(L);
 }
 
-Lua::LuaObject LuaState::NewTable(){
-  return Lua::NewTable(L);
+Lua::LuaObject Lua::LuaState::NewTable(){
+  Lua::NewTable(L);
+  return Lua::LuaObject(L);
 }

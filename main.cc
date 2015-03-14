@@ -42,7 +42,7 @@ private:
 };
 
 int main(){
-  LuaState L;
+  Lua::LuaState L;
   L.LoadLibs();
   L.LoadFile("luascript.lua");
 

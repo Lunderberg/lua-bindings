@@ -1,7 +1,5 @@
 #include "LuaObject.hh"
 
-#include "LuaState.hh"
-
 Lua::LuaObject::LuaObject(lua_State* L, int stack_pos) :
   L(L) {
   this->stack_pos = lua_absindex(L, stack_pos);
@@ -21,19 +19,6 @@ bool Lua::LuaObject::IsUserData()      { return LuaType() == LUA_TUSERDATA; }
 bool Lua::LuaObject::IsLightUserData() { return LuaType() == LUA_TLIGHTUSERDATA; }
 bool Lua::LuaObject::IsThread()        { return LuaType() == LUA_TTHREAD; }
 
-Lua::LuaTableReference<std::string> Lua::LuaObject::operator[](std::string key){
-  if(!IsTable()){
-    throw LuaInvalidStackContents("Object is not a table.");
-  }
-  return LuaTableReference<std::string>(L, stack_pos, key);
-}
-Lua::LuaTableReference<int> Lua::LuaObject::operator[](int key){
-  if(!IsTable()){
-    throw LuaInvalidStackContents("Object is not a table.");
-  }
-  return LuaTableReference<int>(L, stack_pos, key);
-}
-
 void Lua::LuaObject::MoveToTop(){
   lua_pushvalue(L, stack_pos);
   lua_remove(L, stack_pos);
@@ -44,59 +29,7 @@ void Lua::LuaObject::Pop(){
   lua_remove(L, stack_pos);
 }
 
-Lua::LuaObject Lua::Push(lua_State* L, lua_CFunction t){
-  lua_pushcfunction(L, t);
-  return Lua::LuaObject(L);
-}
 
-Lua::LuaObject Lua::Push(lua_State* L, const char* string){
-  lua_pushstring(L, string);
-  return Lua::LuaObject(L);
-}
-
-Lua::LuaObject Lua::Push(lua_State* L, std::string string){
-  return Push(L, string.c_str());
-}
-
-Lua::LuaObject Lua::Push(lua_State* L, LuaObject obj){
-  obj.MoveToTop();
-  return Lua::LuaObject(L);
-}
-
-Lua::LuaObject Lua::Push(lua_State* L, Lua::LuaCallable* callable){
-  // Define a new userdata, storing the LuaCallable in it.
-  void* userdata = lua_newuserdata(L, sizeof(callable));
-  *reinterpret_cast<Lua::LuaCallable**>(userdata) = callable;
-
-  // Create the metatable
-  int metatable_uninitialized = luaL_newmetatable(L, cpp_function_registry_entry.c_str());
-  if(metatable_uninitialized){
-    Lua::LuaObject table(L);
-    table["__call"] = call_cpp_function;
-    table["__gc"] = garbage_collect_cpp_function;
-    table["__metatable"] = "Access restricted";
-  }
-  lua_setmetatable(L, -2);
-
-  return Lua::LuaObject(L, -1);
-}
-
-Lua::LuaObject Lua::NewTable(lua_State* L){
+void Lua::NewTable(lua_State* L){
   lua_newtable(L);
-  return Lua::LuaObject(L);
-}
-
-int call_cpp_function(lua_State* L){
-  void* storage = lua_touserdata(L, 1);
-  Lua::LuaCallable* callable = *reinterpret_cast<Lua::LuaCallable**>(storage);
-  lua_remove(L, 1);
-  int args_returned = callable->call(L);
-  return args_returned;
-}
-
-int garbage_collect_cpp_function(lua_State* L){
-  void* storage = lua_touserdata(L, 1);
-  Lua::LuaCallable* callable = *reinterpret_cast<Lua::LuaCallable**>(storage);
-  delete callable;
-  return 0;
 }
