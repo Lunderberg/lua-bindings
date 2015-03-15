@@ -4,11 +4,12 @@
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
+#include "LuaRegistryNames.hh"
 
 namespace Lua{
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, T>::type
-  Read(lua_State* L, int index){
+  ReadDirect(lua_State* L, int index){
     int success;
     lua_Number output = lua_tonumberx(L, index, &success);
     if(!success){
@@ -19,7 +20,7 @@ namespace Lua{
 
   template<typename T>
   typename std::enable_if<std::is_same<T, std::string>::value, T>::type
-  Read(lua_State* L, int index){
+  ReadDirect(lua_State* L, int index){
     if(lua_isstring(L, index)){
       return lua_tostring(L, index);
     } else {
@@ -27,6 +28,32 @@ namespace Lua{
     }
   }
 
+  template<typename T>
+  auto ReadDirectIfPossible(lua_State* L, int index, bool)
+    -> decltype(ReadDirect<T>(L, index)) {
+    return ReadDirect<T>(L, index);
+  }
+
+  template<typename T>
+  T ReadDirectIfPossible(lua_State* L, int index, int){
+    if(!lua_isuserdata(L, index)){
+      throw LuaInvalidStackContents("Value was not userdata");
+    }
+
+    void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
+
+    if(!storage){
+      throw LuaInvalidStackContents("Value could not be converted to requested type.");
+    }
+
+    T* obj = *reinterpret_cast<T**>(storage);
+    return *obj;
+  }
+
+  template<typename T>
+  T Read(lua_State* L, int index){
+    return ReadDirectIfPossible<T>(L, index, true);
+  }
 
 }
 

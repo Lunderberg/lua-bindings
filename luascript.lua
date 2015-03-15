@@ -47,3 +47,9 @@ function accepts_testclass(x)
    print("I got a TestClass")
    print("It has x of "..x:GetX())
 end
+
+function returns_testclass()
+   local var = make_TestClass()
+   var:SetX(99)
+   return var
+end

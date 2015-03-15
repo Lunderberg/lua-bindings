@@ -88,5 +88,8 @@ int main(){
   obj.SetX(42);
   L.Call("accepts_testclass", obj);
 
+  auto obj2 = L.Call<TestClass>("returns_testclass");
+  std::cout << "It returned an object with " << obj2.GetX() << std::endl;
+
   return 0;
 }
