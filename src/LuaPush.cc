@@ -1,4 +1,4 @@
-#include "LuaPushRead.hh"
+#include "LuaPush.hh"
 
 #include "LuaCallable.hh"
 #include "LuaObject.hh"

@@ -6,7 +6,7 @@
 #include "LuaCallable.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
-#include "LuaPushRead.hh"
+#include "LuaPush.hh"
 #include "TemplateUtils.hh"
 
 namespace Lua{

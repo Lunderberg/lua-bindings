@@ -1,5 +1,5 @@
-#ifndef _LUAPUSHREAD_H_
-#define _LUAPUSHREAD_H_
+#ifndef _LUAPUSH_H_
+#define _LUAPUSH_H_
 
 #include <functional>
 #include <string>
@@ -85,4 +85,4 @@ namespace Lua{
   }
 }
 
-#endif /* _LUAPUSHREAD_H_ */
+#endif /* _LUAPUSH_H_ */
