@@ -5,23 +5,23 @@
 #include "LuaRegistryNames.hh"
 #include "LuaTableReference.hh"
 
-void Lua::Push(lua_State* L, lua_CFunction t){
+void Lua::PushValueDirect(lua_State* L, lua_CFunction t){
   lua_pushcfunction(L, t);
 }
 
-void Lua::Push(lua_State* L, const char* string){
+void Lua::PushValueDirect(lua_State* L, const char* string){
   lua_pushstring(L, string);
 }
 
-void Lua::Push(lua_State* L, std::string string){
-  Push(L, string.c_str());
+void Lua::PushValueDirect(lua_State* L, std::string string){
+  PushValueDirect(L, string.c_str());
 }
 
-void Lua::Push(lua_State*, LuaObject& obj){
+void Lua::PushValueDirect(lua_State*, LuaObject& obj){
   obj.MoveToTop();
 }
 
-void Lua::Push(lua_State* L, Lua::LuaCallable* callable){
+void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   // Define a new userdata, storing the LuaCallable in it.
   void* userdata = lua_newuserdata(L, sizeof(callable));
   *reinterpret_cast<Lua::LuaCallable**>(userdata) = callable;

@@ -23,6 +23,8 @@ Exception(LuaExecuteError, LuaFunctionExecuteError);
 Exception(LuaException, LuaCppCallError);
 Exception(LuaCppCallError, LuaIncorrectUserData);
 
+Exception(LuaException, LuaClassNotRegistered);
+
 #undef Exception
 
 #endif /* _LUAEXCEPTIONS_H_ */

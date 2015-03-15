@@ -25,12 +25,14 @@ namespace Lua{
     }
     ~MakeClass(){
       metatable["__index"] = index;
-      lua_pop(L, 1);
+
+      LuaObject registry(L, LUA_REGISTRYINDEX);
+      registry[class_registry_entry<ClassType>()] = metatable;
     }
 
     template<typename RetVal, typename... Params>
     MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...)){
-      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func, name);
+      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
       return *this;
     }
 
@@ -39,7 +41,7 @@ namespace Lua{
       if(constructor_name.size() == 0){
         constructor_name = name;
       }
-      Push(L, new LuaCallable_ObjectConstructor<ClassType(Params...)>(name));
+      Push(L, new LuaCallable_ObjectConstructor<ClassType(Params...)>());
       lua_setglobal(L, constructor_name.c_str());
 
       return *this;

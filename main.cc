@@ -84,6 +84,9 @@ int main(){
     .AddMethod("PrintSelf", &TestClass::PrintSelf);
   L.Call("test_classes");
 
+  TestClass obj;
+  obj.SetX(42);
+  L.Call("accepts_testclass", obj);
 
   return 0;
 }

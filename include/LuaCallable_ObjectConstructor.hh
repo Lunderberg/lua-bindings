@@ -8,6 +8,7 @@
 #include "LuaCallable.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
 namespace Lua{
@@ -16,16 +17,13 @@ namespace Lua{
   template<typename ClassType, typename... Params>
   class LuaCallable_ObjectConstructor<ClassType(Params...)> : public LuaCallable {
   public:
-    LuaCallable_ObjectConstructor(std::string metatable_name)
-      : metatable_name(metatable_name) { }
+    LuaCallable_ObjectConstructor() { }
     virtual int call(lua_State* L){
-      return call_constructor_helper(build_indices<sizeof...(Params)>(), L, metatable_name);
+      return call_constructor_helper(build_indices<sizeof...(Params)>(), L);
     }
   private:
-    std::string metatable_name;
-
     template<int... Indices>
-    static int call_constructor_helper(indices<Indices...>, lua_State* L, std::string metatable_name){
+    static int call_constructor_helper(indices<Indices...>, lua_State* L){
       if(lua_gettop(L) != sizeof...(Params)){
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
@@ -34,7 +32,7 @@ namespace Lua{
       void* userdata = lua_newuserdata(L, sizeof(obj));
       *reinterpret_cast<ClassType**>(userdata) = obj;
 
-      luaL_newmetatable(L, metatable_name.c_str());
+      luaL_newmetatable(L, class_registry_entry<ClassType>().c_str());
       lua_setmetatable(L, -2);
 
       return 1;

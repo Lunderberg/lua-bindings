@@ -42,3 +42,8 @@ function test_classes()
    var:PrintSelf()
    print('Testing success.')
 end
+
+function accepts_testclass(x)
+   print("I got a TestClass")
+   print("It has x of "..x:GetX())
+end
