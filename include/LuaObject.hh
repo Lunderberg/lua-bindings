@@ -7,6 +7,7 @@
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
+#include "LuaRead.hh"
 
 namespace Lua{
   void NewTable(lua_State* L);
@@ -29,24 +30,9 @@ namespace Lua{
     bool IsLightUserData();
     bool IsThread();
 
-    // Yucky template usage so that I can have compile-time checks
-    //   of whether each cast is available.
     template<typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value, T>::type Cast() {
-      if(IsNumber()){
-        return lua_tonumber(L, stack_pos);
-      } else {
-        throw LuaInvalidStackContents("Stack did not contain a number");
-      }
-    }
-
-    template<typename T>
-    typename std::enable_if<std::is_same<T, std::string>::value, T>::type Cast(){
-      if(IsString()){
-        return lua_tostring(L, stack_pos);
-      } else {
-        throw LuaInvalidStackContents("Stack did not contain a string");
-      }
+    T Cast(){
+      return Read<T>(L, stack_pos);
     }
 
     void MoveToTop();

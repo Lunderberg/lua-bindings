@@ -45,7 +45,7 @@ namespace Lua{
     template<int... Indices, typename RetVal_func>
     static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
                                     lua_State* L){
-      RetVal_func output = func(LuaObject(L, Indices+1).Cast<Params>()...);
+      RetVal_func output = func(Read<Params>(L, Indices+1)...);
       Push(L, output);
       return 1;
     }
@@ -55,7 +55,7 @@ namespace Lua{
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
     template<int... Indices>
     static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
-      func(LuaObject(L, Indices+1).Cast<Params>()...);
+      func(Read<Params>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop

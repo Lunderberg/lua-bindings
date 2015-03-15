@@ -158,8 +158,7 @@ namespace Lua{
     template<typename T>
     typename std::enable_if<!std::is_same<T, void>::value, T>::type
     Read(int stack_pos = -1){
-      Lua::LuaObject obj(L, stack_pos);
-      return obj.Cast<T>();
+      return Lua::Read<T>(L, stack_pos);
     }
 
     //! Reads no value from the current stack.

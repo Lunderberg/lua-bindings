@@ -28,7 +28,7 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      ClassType* obj = new ClassType(LuaObject(L, Indices+1).Cast<Params>()...);
+      ClassType* obj = new ClassType(Read<Params>(L, Indices+1)...);
       void* userdata = lua_newuserdata(L, sizeof(obj));
       *reinterpret_cast<ClassType**>(userdata) = obj;
 

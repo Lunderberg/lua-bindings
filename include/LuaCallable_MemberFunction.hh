@@ -41,7 +41,7 @@ namespace Lua{
     template<int... Indices, typename RetVal_func>
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
                                            RetVal_func (ClassType::*func)(Params...)){
-      RetVal output = (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
+      RetVal output = (obj->*func)(Read<Params>(L, Indices+1)...);
       Push(L, output);
       return 1;
     }
@@ -52,7 +52,7 @@ namespace Lua{
     template<int... Indices>
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
                                            void (ClassType::*func)(Params...)){
-      (obj->*func)(LuaObject(L, Indices+1).Cast<Params>()...);
+      (obj->*func)(Read<Params>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop
