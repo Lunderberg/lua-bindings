@@ -102,7 +102,7 @@ namespace Lua{
     return_type Call(const char* name, Params... params){
       int top = lua_gettop(L);
       lua_getglobal(L, name);
-      PushMany(params...);
+      PushMany(std::forward<Params>(params)...);
       int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
       int nresults= lua_gettop(L) - top;
       LuaDelayedPop delayed(L, nresults);

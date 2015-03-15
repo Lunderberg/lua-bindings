@@ -33,6 +33,12 @@ namespace Lua{
       return LuaObject(L, -1);
     }
 
+    bool Exists(){
+      LuaDelayedPop delayed(L, 1);
+      auto obj = Get();
+      return !obj.IsNil();
+    }
+
   private:
     lua_State* L;
     int table_stack_pos;

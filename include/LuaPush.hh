@@ -54,7 +54,7 @@ namespace Lua{
   }
 
   template<typename T>
-  void PushValueDefault(lua_State* L, T t){
+  void PushValueDefault(lua_State* L, const T& t){
     int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
     lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
     if(!metatable_exists){
@@ -76,12 +76,12 @@ namespace Lua{
 
   template<typename T>
   void PushDirectIfPossible(lua_State* L, T t, int) {
-    PushValueDefault(L, t);
+    PushValueDefault(L, std::forward<T>(t));
   }
 
   template<typename T>
   void Push(lua_State* L, T t){
-    PushDirectIfPossible(L, t, true);
+    PushDirectIfPossible(L, std::forward<T>(t), true);
   }
 }
 

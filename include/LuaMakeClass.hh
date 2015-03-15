@@ -9,16 +9,31 @@
 #include "LuaCallable_ObjectConstructor.hh"
 #include "LuaCallable_ObjectDeleter.hh"
 #include "LuaObject.hh"
+#include "LuaPush.hh"
+
+int garbage_collect_arbitrary_object(lua_State* L);
 
 namespace Lua{
+  template<typename T>
+  void delete_from_void_pointer(void* obj){
+    T* class_obj = static_cast<T*>(obj);
+    delete class_obj;
+  }
+
   template<typename ClassType>
   class MakeClass {
   public:
     MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L){
       luaL_newmetatable(L, name.c_str());
       metatable = LuaObject(L);
-      metatable["__gc"] = new LuaCallable_ObjectDeleter<ClassType>();
       metatable["__metatable"] = "Access restricted";
+
+      // Store a deletion function pointer that can be found from the cclosure.
+      void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
+      *reinterpret_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
+      lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
+      LuaObject gc(L);
+      metatable["__gc"] = gc;
 
       NewTable(L);
       index = LuaObject(L);
