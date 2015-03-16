@@ -1,7 +1,9 @@
 #ifndef _LUAPUSH_H_
 #define _LUAPUSH_H_
 
+#include <cstring>
 #include <functional>
+#include <memory>
 #include <string>
 #include <type_traits>
 
@@ -61,9 +63,10 @@ namespace Lua{
       throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
     }
 
-    T* obj = new T(t);
-    void* userdata = lua_newuserdata(L, sizeof(obj));
-    *reinterpret_cast<T**>(userdata) = obj;
+    void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
+    std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
+    auto obj = std::make_shared<T>(t);
+    *reinterpret_cast<std::shared_ptr<T>*>(userdata) = obj;
 
     luaL_setmetatable(L, class_registry_entry<T>().c_str());
   }

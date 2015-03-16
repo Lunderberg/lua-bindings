@@ -1,13 +1,14 @@
 #ifndef _LUAMAKECLASS_H_
 #define _LUAMAKECLASS_H_
 
+#include <iostream>
+#include <memory>
 #include <string>
 
 #include <lua.hpp>
 
 #include "LuaCallable_MemberFunction.hh"
 #include "LuaCallable_ObjectConstructor.hh"
-#include "LuaCallable_ObjectDeleter.hh"
 #include "LuaObject.hh"
 #include "LuaPush.hh"
 
@@ -16,8 +17,8 @@ int garbage_collect_arbitrary_object(lua_State* L);
 namespace Lua{
   template<typename T>
   void delete_from_void_pointer(void* obj){
-    T* class_obj = static_cast<T*>(obj);
-    delete class_obj;
+    std::shared_ptr<T>* class_obj = reinterpret_cast<std::shared_ptr<T>*>(obj);
+    class_obj->~shared_ptr();
   }
 
   template<typename ClassType>

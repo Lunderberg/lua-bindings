@@ -1,6 +1,7 @@
 #ifndef _LUACALLABLE_MEMBERFUNCTION_H_
 #define _LUACALLABLE_MEMBERFUNCTION_H_
 
+#include <memory>
 #include <string>
 
 #include <lua.hpp>
@@ -30,18 +31,18 @@ namespace Lua{
         throw LuaIncorrectUserData("Called method using incorrect type");
       }
 
-      ClassType* obj = *reinterpret_cast<ClassType**>(storage);
+      auto obj = *reinterpret_cast<std::shared_ptr<ClassType>*>(storage);
       lua_remove(L, 1);
 
-      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, obj, func);
+      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *obj, func);
     }
   private:
     RetVal (ClassType::*func)(Params...);
 
     template<int... Indices, typename RetVal_func>
-    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
+    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
                                            RetVal_func (ClassType::*func)(Params...)){
-      RetVal output = (obj->*func)(Read<Params>(L, Indices+1)...);
+      RetVal output = (obj.*func)(Read<Params>(L, Indices+1)...);
       Push(L, output);
       return 1;
     }
@@ -50,9 +51,9 @@ namespace Lua{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
     template<int... Indices>
-    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj,
+    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
                                            void (ClassType::*func)(Params...)){
-      (obj->*func)(Read<Params>(L, Indices+1)...);
+      (obj.*func)(Read<Params>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop

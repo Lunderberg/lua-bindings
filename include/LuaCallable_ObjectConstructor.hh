@@ -1,6 +1,8 @@
 #ifndef _LUACALLABLE_OBJECTCONSTRUCTOR_H_
 #define _LUACALLABLE_OBJECTCONSTRUCTOR_H_
 
+#include <cstring>
+#include <memory>
 #include <string>
 
 #include <lua.hpp>
@@ -28,9 +30,11 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      ClassType* obj = new ClassType(Read<Params>(L, Indices+1)...);
-      void* userdata = lua_newuserdata(L, sizeof(obj));
-      *reinterpret_cast<ClassType**>(userdata) = obj;
+      void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<ClassType>));
+      std::memset(userdata, 0, sizeof(std::shared_ptr<ClassType>));
+
+      auto object = std::make_shared<ClassType>(Read<Params>(L, Indices+1)...);
+      *reinterpret_cast<std::shared_ptr<ClassType>* >(userdata) = object;
 
       luaL_newmetatable(L, class_registry_entry<ClassType>().c_str());
       lua_setmetatable(L, -2);

@@ -1,6 +1,8 @@
 #ifndef _LUAREAD_H_
 #define _LUAREAD_H_
 
+#include <memory>
+
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
@@ -46,7 +48,7 @@ namespace Lua{
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
     }
 
-    T* obj = *reinterpret_cast<T**>(storage);
+    std::shared_ptr<T> obj = *reinterpret_cast<std::shared_ptr<T>*>(storage);
     return *obj;
   }
 
