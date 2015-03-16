@@ -31,30 +31,40 @@ namespace Lua{
   }
 
   template<typename T>
-  auto ReadDirectIfPossible(lua_State* L, int index, bool)
-    -> decltype(ReadDirect<T>(L, index)) {
-    return ReadDirect<T>(L, index);
-  }
+  struct ReadDefaultType{
+    static T Read(lua_State* L, int index){
+      auto obj = ReadDefaultType<std::shared_ptr<T> >::Read(L, index);
+      return *obj;
+    }
+  };
 
   template<typename T>
-  T ReadDefault(lua_State* L, int index){
-    if(!lua_isuserdata(L, index)){
-      throw LuaInvalidStackContents("Value was not userdata");
+  struct ReadDefaultType<std::shared_ptr<T> >{
+    static std::shared_ptr<T> Read(lua_State* L, int index){
+      if(!lua_isuserdata(L, index)){
+        throw LuaInvalidStackContents("Value was not userdata");
+      }
+
+      void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
+
+      if(!storage){
+        throw LuaInvalidStackContents("Value could not be converted to requested type.");
+      }
+
+      std::shared_ptr<T> obj = *reinterpret_cast<std::shared_ptr<T>*>(storage);
+      return obj;
     }
-
-    void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
-
-    if(!storage){
-      throw LuaInvalidStackContents("Value could not be converted to requested type.");
-    }
-
-    std::shared_ptr<T> obj = *reinterpret_cast<std::shared_ptr<T>*>(storage);
-    return *obj;
-  }
+  };
 
   template<typename T>
   T ReadDirectIfPossible(lua_State* L, int index, int){
-    return ReadDefault<T>(L, index);
+    return ReadDefaultType<T>::Read(L, index);
+  }
+
+  template<typename T>
+  auto ReadDirectIfPossible(lua_State* L, int index, bool)
+    -> decltype(ReadDirect<T>(L, index)) {
+    return ReadDirect<T>(L, index);
   }
 
   template<typename T>

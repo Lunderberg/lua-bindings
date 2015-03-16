@@ -47,6 +47,13 @@ private:
 int main(){
   Lua::LuaState L;
   L.LoadLibs();
+
+  L.MakeClass<TestClass>("TestClass")
+    .AddConstructor<>("make_TestClass")
+    .AddMethod("GetX", &TestClass::GetX)
+    .AddMethod("SetX", &TestClass::SetX)
+    .AddMethod("PrintSelf", &TestClass::PrintSelf);
+
   L.LoadFile("luascript.lua");
 
   cout << "** Execute a Lua function from C++" << endl;
@@ -80,19 +87,16 @@ int main(){
   std::cout << "lua_table.b = " << table["b"].Cast<std::string>() << std::endl;
   table.Pop();
 
-  L.MakeClass<TestClass>("TestClass")
-    .AddConstructor<>("make_TestClass")
-    .AddMethod("GetX", &TestClass::GetX)
-    .AddMethod("SetX", &TestClass::SetX)
-    .AddMethod("PrintSelf", &TestClass::PrintSelf);
   L.Call("test_classes");
 
   TestClass obj;
   obj.SetX(42);
   L.Call("accepts_testclass", obj);
 
-  auto obj2 = L.Call<TestClass>("returns_testclass");
-  std::cout << "It returned an object with " << obj2.GetX() << std::endl;
+  auto obj2 = L.Call<std::shared_ptr<TestClass> >("returns_testclass");
+  std::cout << "It returned an object with " << obj2->GetX() << std::endl;
+  obj2->SetX(77);
+  L.Call("returns_testclass");
 
   return 0;
 }

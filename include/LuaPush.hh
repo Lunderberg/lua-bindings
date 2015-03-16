@@ -56,20 +56,30 @@ namespace Lua{
   }
 
   template<typename T>
-  void PushValueDefault(lua_State* L, const T& t){
-    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
-    lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
-    if(!metatable_exists){
-      throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
+  struct PushDefaultType{
+    static void Push(lua_State* L, const T& t){
+      auto obj = std::make_shared<T>(t);
+      PushDefaultType<std::shared_ptr<T> >::Push(L, obj);
     }
+  };
 
-    void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
-    std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
-    auto obj = std::make_shared<T>(t);
-    *reinterpret_cast<std::shared_ptr<T>*>(userdata) = obj;
+  template<typename T>
+  struct PushDefaultType<std::shared_ptr<T> > {
+    static void Push(lua_State* L, std::shared_ptr<T> t){
+      int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+      lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
+      if(!metatable_exists){
+        throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
+      }
 
-    luaL_setmetatable(L, class_registry_entry<T>().c_str());
-  }
+      void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
+      std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
+      *reinterpret_cast<std::shared_ptr<T>*>(userdata) = t;
+
+      luaL_setmetatable(L, class_registry_entry<T>().c_str());
+    }
+  };
+
 
   template<typename T>
   auto PushDirectIfPossible(lua_State* L, T t, bool)
@@ -79,7 +89,7 @@ namespace Lua{
 
   template<typename T>
   void PushDirectIfPossible(lua_State* L, T t, int) {
-    PushValueDefault(L, std::forward<T>(t));
+    PushDefaultType<T>::Push(L, std::forward<T>(t));
   }
 
   template<typename T>

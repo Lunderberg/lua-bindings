@@ -48,8 +48,8 @@ function accepts_testclass(x)
    print("It has x of "..x:GetX())
 end
 
+global_testclass = make_TestClass()
 function returns_testclass()
-   local var = make_TestClass()
-   var:SetX(99)
-   return var
+   print("Current value is "..global_testclass:GetX())
+   return global_testclass
 end
