@@ -37,7 +37,7 @@ namespace Lua{
   }
 
   template<typename T>
-  T ReadDirectIfPossible(lua_State* L, int index, int){
+  T ReadDefault(lua_State* L, int index){
     if(!lua_isuserdata(L, index)){
       throw LuaInvalidStackContents("Value was not userdata");
     }
@@ -50,6 +50,11 @@ namespace Lua{
 
     std::shared_ptr<T> obj = *reinterpret_cast<std::shared_ptr<T>*>(storage);
     return *obj;
+  }
+
+  template<typename T>
+  T ReadDirectIfPossible(lua_State* L, int index, int){
+    return ReadDefault<T>(L, index);
   }
 
   template<typename T>
