@@ -5,12 +5,14 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <type_traits>
 
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
 #include "LuaRegistryNames.hh"
+#include "TemplateUtils.hh"
 
 namespace Lua{
   class LuaObject;
@@ -21,6 +23,9 @@ namespace Lua{
   void PushValueDirect(lua_State* L, std::string string);
   void PushValueDirect(lua_State* L, LuaObject& obj);
   void PushValueDirect(lua_State* L, LuaCallable* callable);
+
+  template<typename FirstParam, typename... Params>
+  void PushMany(lua_State* L, FirstParam&& first, Params&&... params);
 
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value>::type
@@ -70,6 +75,16 @@ namespace Lua{
     PushValueDirect(L, std::function<RetVal(Params...)>(func));
   }
 
+  template<int... Indices, typename... Params>
+  void PushValueDirect_TupleHelper(lua_State* L, std::tuple<Params...> tuple, indices<Indices...>){
+    PushMany(L, std::get<Indices>(tuple)...);
+  }
+
+  template<typename... Params>
+  void PushValueDirect(lua_State* L, std::tuple<Params...> tuple){
+    PushValueDirect_TupleHelper(L, tuple, build_indices<sizeof...(Params)>());
+  }
+
   template<typename T>
   void PushValueDefault(lua_State* L, const T& t){
     auto obj = std::make_shared<T>(t);
@@ -100,10 +115,6 @@ namespace Lua{
     Push(L, std::forward<FirstParam>(first));
     PushMany(L, std::forward<Params>(params)...);
   }
-
-
-
-
 }
 
 #endif /* _LUAPUSH_H_ */

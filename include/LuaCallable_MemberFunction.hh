@@ -43,8 +43,9 @@ namespace Lua{
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
                                            RetVal_func (ClassType::*func)(Params...)){
       RetVal output = (obj.*func)(Read<Params>(L, Indices+1)...);
+      int top = lua_gettop(L);
       Push(L, output);
-      return 1;
+      return lua_gettop(L) - top;
     }
 
     // g++ incorrectly flags lua_State* L as being unused when Params... is empty

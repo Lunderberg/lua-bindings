@@ -73,6 +73,7 @@ int main(){
   L.SetGlobal("sum_integers", sum_integers);
   L.SetGlobal("print_integer", print_integer);
   L.SetGlobal("print_hello", print_hello);
+  L.SetGlobal("multiple_returns", multiple_returns);
   L.Call("test_cpp_functions");
 
   // Set a Lua table from inside C++
@@ -99,6 +100,11 @@ int main(){
   std::cout << "It returned an object with " << obj2->GetX() << std::endl;
   obj2->SetX(77);
   L.Call("returns_testclass");
+
+  auto output = L.Call<std::tuple<int,int,int,std::string> >("lua_multiple_returns");
+  //std::cout << output << std::endl;
+  std::cout << std::get<0>(output) << " " << std::get<1>(output) << " "
+            << std::get<2>(output) << " " << std::get<3>(output) << std::endl;
 
   return 0;
 }

@@ -2,13 +2,18 @@
 #define _LUAREAD_H_
 
 #include <memory>
+#include <tuple>
 
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
 #include "LuaRegistryNames.hh"
+#include "TemplateUtils.hh"
 
 namespace Lua{
+  template<typename T>
+  T Read(lua_State* L, int index);
+
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, T>::type
   ReadDirect(lua_State* L, int index){
@@ -53,6 +58,17 @@ namespace Lua{
 
       std::shared_ptr<T> obj = *static_cast<std::shared_ptr<T>*>(storage);
       return obj;
+    }
+  };
+
+  template<typename... Params>
+  struct ReadDefaultType<std::tuple<Params...> >{
+    static std::tuple<Params...> Read(lua_State* L, int index){
+      return Read_Helper(L, index, build_indices<sizeof...(Params)>() );
+    }
+    template<int... Indices>
+    static std::tuple<Params...> Read_Helper(lua_State* L, int index, indices<Indices...>){
+      return std::make_tuple(Lua::Read<Params>(L, index+Indices)...);
     }
   };
 

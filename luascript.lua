@@ -22,6 +22,8 @@ function test_cpp_functions()
    local y = 10
    print("Sum of "..x.." and "..y.." is "..sum_integers(x,y))
    print_integer(x+y)
+   local a,b = multiple_returns()
+   print("a = "..a..", b = "..b)
 end
 
 function read_table()
@@ -52,4 +54,8 @@ global_testclass = make_TestClass()
 function returns_testclass()
    print("Current value is "..global_testclass:GetX())
    return global_testclass
+end
+
+function lua_multiple_returns()
+   return 1,2,3,"hi"
 end

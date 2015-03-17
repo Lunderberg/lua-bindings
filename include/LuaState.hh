@@ -110,7 +110,7 @@ namespace Lua{
         auto error_message = Read<std::string>();
         throw LuaFunctionExecuteError(error_message);
       }
-      return Read<return_type>();
+      return Read<return_type>(top - nresults);
     }
 
     Lua::LuaObject NewTable();
@@ -162,6 +162,10 @@ namespace Lua{
     template<typename T>
     typename std::enable_if<std::is_same<T, void>::value, T>::type
     Read() { }
+
+    template<typename T>
+    typename std::enable_if<std::is_same<T, void>::value, T>::type
+    Read(int) { }
 
     //! The internal lua state.
     lua_State* L;

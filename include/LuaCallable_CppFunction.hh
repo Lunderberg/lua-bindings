@@ -46,8 +46,9 @@ namespace Lua{
     static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
                                     lua_State* L){
       RetVal_func output = func(Read<Params>(L, Indices+1)...);
+      int top = lua_gettop(L);
       Push(L, output);
-      return 1;
+      return lua_gettop(L) - top;
     }
 
     // g++ incorrectly flags lua_State* L as being unused when Params... is empty
