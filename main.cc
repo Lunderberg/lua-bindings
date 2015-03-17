@@ -88,6 +88,7 @@ int main(){
   table = L.GetGlobal("lua_table");
   std::cout << "lua_table.a = " << table["a"].Cast<int>() << std::endl;
   std::cout << "lua_table.b = " << table["b"].Cast<std::string>() << std::endl;
+  std::cout << "lua_table[1] = " << table[1].Cast<int>() << std::endl;
   table.Pop();
 
   L.Call("test_classes");
@@ -102,9 +103,14 @@ int main(){
   L.Call("returns_testclass");
 
   auto output = L.Call<std::tuple<int,int,int,std::string> >("lua_multiple_returns");
-  //std::cout << output << std::endl;
   std::cout << std::get<0>(output) << " " << std::get<1>(output) << " "
             << std::get<2>(output) << " " << std::get<3>(output) << std::endl;
+
+  auto vec_output = L.Call<std::vector<int> >("double_vector_elements",std::vector<int>{7,9,14});
+  for(auto value : vec_output){
+    std::cout << value << " ";
+  }
+  std::cout << std::endl;
 
   return 0;
 }

@@ -7,10 +7,12 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
+#include "LuaObject.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
@@ -83,6 +85,15 @@ namespace Lua{
   template<typename... Params>
   void PushValueDirect(lua_State* L, std::tuple<Params...> tuple){
     PushValueDirect_TupleHelper(L, tuple, build_indices<sizeof...(Params)>());
+  }
+
+  template<typename T>
+  void PushValueDirect(lua_State* L, std::vector<T> vec){
+    Lua::NewTable(L);
+    Lua::LuaObject table(L);
+    for(unsigned int i=0; i<vec.size(); i++){
+      table[i+1] = vec[i];
+    }
   }
 
   template<typename T>

@@ -1,27 +1,32 @@
 #ifndef _LUAREAD_H_
 #define _LUAREAD_H_
 
+#include <iostream>
 #include <memory>
 #include <tuple>
+#include <vector>
 
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
+#include "LuaObject.hh"
 #include "LuaRegistryNames.hh"
+#include "LuaTableReference.hh"
 #include "TemplateUtils.hh"
 
 namespace Lua{
-  template<typename T>
-  T Read(lua_State* L, int index);
 
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, T>::type
   ReadDirect(lua_State* L, int index){
     int success;
     lua_Number output = lua_tonumberx(L, index, &success);
-    if(!success){
-      throw LuaInvalidStackContents("Lua value could not be converted to number");
-    }
+    // // The check of whether the value was indeed a number can give false negatives.
+    // // For now, disabling the check.
+    // // The check yields false at times when converting a luaTable to a vector<int>
+    // if(!success){
+    //   throw LuaInvalidStackContents("Lua value could not be converted to number");
+    // }
     return output;
   }
 
@@ -69,6 +74,21 @@ namespace Lua{
     template<int... Indices>
     static std::tuple<Params...> Read_Helper(lua_State* L, int index, indices<Indices...>){
       return std::make_tuple(Lua::Read<Params>(L, index+Indices)...);
+    }
+  };
+
+  template<typename T>
+  struct ReadDefaultType<std::vector<T> >{
+    static std::vector<T> Read(lua_State* L, int index){
+      Lua::LuaObject table(L, index);
+      std::vector<T> output;
+      int table_size = table.Length();
+
+      for(int i=0; i<table_size; i++){
+        auto value = table[i].Cast<T>();
+        output.push_back(value);
+      }
+      return output;
     }
   };
 

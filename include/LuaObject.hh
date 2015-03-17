@@ -7,10 +7,12 @@
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
-#include "LuaRead.hh"
 
 namespace Lua{
   void NewTable(lua_State* L);
+
+  template<typename T>
+  T Read(lua_State* L, int stack_pos);
 
   template<typename T>
   class LuaTableReference;
@@ -34,6 +36,8 @@ namespace Lua{
     T Cast(){
       return Read<T>(L, stack_pos);
     }
+
+    int Length();
 
     void MoveToTop();
     void Pop();

@@ -1,5 +1,8 @@
 #include "LuaObject.hh"
 
+#include "LuaDelayedPop.hh"
+#include "LuaRead.hh"
+
 Lua::LuaObject::LuaObject(lua_State* L, int stack_pos) :
   L(L) {
   this->stack_pos = lua_absindex(L, stack_pos);
@@ -29,7 +32,12 @@ void Lua::LuaObject::Pop(){
   lua_remove(L, stack_pos);
 }
 
-
 void Lua::NewTable(lua_State* L){
   lua_newtable(L);
+}
+
+int Lua::LuaObject::Length(){
+  lua_len(L, stack_pos);
+  LuaDelayedPop delayed(L, 1);
+  return Lua::Read<int>(L, -1);
 }

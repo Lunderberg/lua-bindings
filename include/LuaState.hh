@@ -21,6 +21,7 @@
 #include "LuaMakeClass.hh"
 #include "LuaObject.hh"
 #include "LuaPush.hh"
+#include "LuaRead.hh"
 #include "LuaTableReference.hh"
 #include "TemplateUtils.hh"
 

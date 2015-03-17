@@ -9,8 +9,8 @@
 #include "LuaCallable.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
-
 
 namespace Lua{
   template<typename ClassType, typename T>

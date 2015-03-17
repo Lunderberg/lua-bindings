@@ -34,6 +34,7 @@ end
 lua_table = {}
 lua_table.a = 5
 lua_table.b = 'hello'
+lua_table[1] = 12345
 
 function test_classes()
    print('Testing classes...')
@@ -58,4 +59,11 @@ end
 
 function lua_multiple_returns()
    return 1,2,3,"hi"
+end
+
+function double_vector_elements(vec)
+   for i = 1,#vec do
+      vec[i] = vec[i]*2
+   end
+   return vec
 end
