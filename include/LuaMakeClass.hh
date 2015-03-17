@@ -17,7 +17,7 @@ int garbage_collect_arbitrary_object(lua_State* L);
 namespace Lua{
   template<typename T>
   void delete_from_void_pointer(void* obj){
-    std::shared_ptr<T>* class_obj = reinterpret_cast<std::shared_ptr<T>*>(obj);
+    std::shared_ptr<T>* class_obj = static_cast<std::shared_ptr<T>*>(obj);
     class_obj->~shared_ptr();
   }
 
@@ -31,7 +31,7 @@ namespace Lua{
 
       // Store a deletion function pointer that can be found from the cclosure.
       void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-      *reinterpret_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
+      *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
       lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
       LuaObject gc(L);
       metatable["__gc"] = gc;

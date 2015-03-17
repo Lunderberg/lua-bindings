@@ -24,7 +24,7 @@ void Lua::PushValueDirect(lua_State*, LuaObject& obj){
 void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   // Define a new userdata, storing the LuaCallable in it.
   void* userdata = lua_newuserdata(L, sizeof(callable));
-  *reinterpret_cast<Lua::LuaCallable**>(userdata) = callable;
+  *static_cast<Lua::LuaCallable**>(userdata) = callable;
 
   // Create the metatable
   int metatable_uninitialized = luaL_newmetatable(L, cpp_function_registry_entry.c_str());
@@ -36,3 +36,5 @@ void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   }
   lua_setmetatable(L, -2);
 }
+
+void Lua::PushMany(lua_State*){ }

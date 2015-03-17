@@ -31,7 +31,7 @@ namespace Lua{
         throw LuaIncorrectUserData("Called method using incorrect type");
       }
 
-      auto obj = *reinterpret_cast<std::shared_ptr<ClassType>*>(storage);
+      auto obj = *static_cast<std::shared_ptr<ClassType>*>(storage);
       lua_remove(L, 1);
 
       return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *obj, func);

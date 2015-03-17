@@ -1,8 +1,6 @@
 #include <iostream>
-using std::cout;
-using std::cerr;
-using std::endl;
 #include <string>
+#include <tuple>
 
 #include <lua.hpp>
 
@@ -27,6 +25,10 @@ int sum_integers(int x, int y){
 
 void print_hello(){
   std::cout << "hello" << std::endl;
+}
+
+std::tuple<int, int> multiple_returns(){
+  return std::make_tuple(5, 6);
 }
 
 class TestClass{
@@ -56,10 +58,10 @@ int main(){
 
   L.LoadFile("luascript.lua");
 
-  cout << "** Execute a Lua function from C++" << endl;
+  std::cout << "** Execute a Lua function from C++" << std::endl;
 
   auto string_return = L.Call<std::string>("myluafunction", 5);
-  cout << "The return value of the function was " << string_return << endl;
+  std::cout << "The return value of the function was " << string_return << std::endl;
 
   L.Call("lua_func_with_params",5,3);
 

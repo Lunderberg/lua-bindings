@@ -51,7 +51,7 @@ namespace Lua{
         throw LuaInvalidStackContents("Value could not be converted to requested type.");
       }
 
-      std::shared_ptr<T> obj = *reinterpret_cast<std::shared_ptr<T>*>(storage);
+      std::shared_ptr<T> obj = *static_cast<std::shared_ptr<T>*>(storage);
       return obj;
     }
   };

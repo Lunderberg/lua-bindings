@@ -126,16 +126,10 @@ namespace Lua{
       Requires that all parameters can be converted to Lua types.
       Falls at compile time otherwise.
     */
-    template<typename FirstParam, typename... Params>
-    void PushMany(FirstParam&& first, Params&&... params){
-      Push(std::forward<FirstParam>(first));
-      PushMany(std::forward<Params>(params)...);
+    template<typename... Params>
+    void PushMany(Params&&... params){
+      Lua::PushMany(L, std::forward<Params>(params)...);
     }
-    //! Pushes zero arguments to the Lua stack.
-    /*! A very useful function, isn't it?
-      This is needed as the end of recursion of PushMany().
-    */
-    void PushMany(){ }
 
     //! Pushes anything onto the Lua stack
     /*! Uses LuaObject::Push.

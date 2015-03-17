@@ -50,36 +50,31 @@ namespace Lua{
     PushValueDirect(L, callable);
   }
 
+  template<typename T>
+  void PushValueDirect(lua_State* L, std::shared_ptr<T> t){
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
+    if(!metatable_exists){
+      throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
+    }
+
+    void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
+    std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
+    *static_cast<std::shared_ptr<T>*>(userdata) = t;
+
+    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+  }
+
   template<typename RetVal, typename... Params>
   void PushValueDirect(lua_State* L, RetVal (*func)(Params...)){
     PushValueDirect(L, std::function<RetVal(Params...)>(func));
   }
 
   template<typename T>
-  struct PushDefaultType{
-    static void Push(lua_State* L, const T& t){
-      auto obj = std::make_shared<T>(t);
-      PushDefaultType<std::shared_ptr<T> >::Push(L, obj);
-    }
-  };
-
-  template<typename T>
-  struct PushDefaultType<std::shared_ptr<T> > {
-    static void Push(lua_State* L, std::shared_ptr<T> t){
-      int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
-      lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
-      if(!metatable_exists){
-        throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
-      }
-
-      void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
-      std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
-      *reinterpret_cast<std::shared_ptr<T>*>(userdata) = t;
-
-      luaL_setmetatable(L, class_registry_entry<T>().c_str());
-    }
-  };
-
+  void PushValueDefault(lua_State* L, const T& t){
+    auto obj = std::make_shared<T>(t);
+    PushValueDirect(L, obj);
+  }
 
   template<typename T>
   auto PushDirectIfPossible(lua_State* L, T t, bool)
@@ -89,13 +84,26 @@ namespace Lua{
 
   template<typename T>
   void PushDirectIfPossible(lua_State* L, T t, int) {
-    PushDefaultType<T>::Push(L, std::forward<T>(t));
+    PushValueDefault<T>(L, std::forward<T>(t));
   }
 
   template<typename T>
-  void Push(lua_State* L, T t){
+  void Push(lua_State* L, T&& t){
     PushDirectIfPossible(L, std::forward<T>(t), true);
   }
+
+  // Does nothing.  Needed for end of recursion of PushMany
+  void PushMany(lua_State*);
+
+  template<typename FirstParam, typename... Params>
+  void PushMany(lua_State* L, FirstParam&& first, Params&&... params){
+    Push(L, std::forward<FirstParam>(first));
+    PushMany(L, std::forward<Params>(params)...);
+  }
+
+
+
+
 }
 
 #endif /* _LUAPUSH_H_ */

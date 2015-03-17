@@ -34,7 +34,7 @@ namespace Lua{
       std::memset(userdata, 0, sizeof(std::shared_ptr<ClassType>));
 
       auto object = std::make_shared<ClassType>(Read<Params>(L, Indices+1)...);
-      *reinterpret_cast<std::shared_ptr<ClassType>* >(userdata) = object;
+      *static_cast<std::shared_ptr<ClassType>* >(userdata) = object;
 
       luaL_newmetatable(L, class_registry_entry<ClassType>().c_str());
       lua_setmetatable(L, -2);
