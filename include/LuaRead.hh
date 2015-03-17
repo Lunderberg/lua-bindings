@@ -43,6 +43,12 @@ namespace Lua{
   }
 
   template<typename T>
+  typename std::enable_if<std::is_same<T, bool>::value, T>::type
+  ReadDirect(lua_State* L, int index){
+    return lua_toboolean(L, index);
+  }
+
+  template<typename T>
   struct ReadDefaultType{
     static T Read(lua_State* L, int index){
       auto obj = ReadDefaultType<std::shared_ptr<T> >::Read(L, index);

@@ -26,6 +26,7 @@ namespace Lua{
   void PushValueDirect(lua_State* L, std::string string);
   void PushValueDirect(lua_State* L, LuaObject& obj);
   void PushValueDirect(lua_State* L, LuaCallable* callable);
+  void PushValueDirect(lua_State* L, bool b);
 
   template<typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params);

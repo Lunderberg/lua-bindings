@@ -2,6 +2,7 @@ env = Environment()
 
 env.Append(CXXFLAGS=['-std=c++11'])
 env.Append(CCFLAGS=['-Wall','-Wextra','-g'])
+env.Append(CCFLAGS=['-O3'])
 
 env.Append(CPPPATH=['lua-5.3.0/src'])
 lua = env.StaticLibrary('lua-5.3.0/lua',Glob('lua-5.3.0/src/*.c'),

@@ -13,6 +13,10 @@ void Lua::PushValueDirect(lua_State* L, const char* string){
   lua_pushstring(L, string);
 }
 
+void Lua::PushValueDirect(lua_State* L, bool b){
+  lua_pushboolean(L, b);
+}
+
 void Lua::PushValueDirect(lua_State* L, std::string string){
   PushValueDirect(L, string.c_str());
 }
