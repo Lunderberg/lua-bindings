@@ -9,8 +9,12 @@ public:
     L(L), num_to_pop(num_to_pop) { }
 
   ~LuaDelayedPop(){
-    lua_pop(L, num_to_pop);
+    if(num_to_pop){
+      lua_pop(L, num_to_pop);
+    }
   }
+
+  void SetNumPop(int num) { num_to_pop = num; }
 private:
   lua_State* L;
   int num_to_pop;

@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -93,6 +94,15 @@ namespace Lua{
     Lua::LuaObject table(L);
     for(unsigned int i=0; i<vec.size(); i++){
       table[i+1] = vec[i];
+    }
+  }
+
+  template<typename T>
+  void PushValueDirect(lua_State* L, std::map<std::string, T> map){
+    Lua::NewTable(L);
+    Lua::LuaObject table(L);
+    for(auto iter : map){
+      table[iter.first] = iter.second;
     }
   }
 

@@ -112,5 +112,10 @@ int main(){
   }
   std::cout << std::endl;
 
+  auto map_output = L.Call<std::map<std::string, int> >("double_map_elements", std::map<std::string, int>{{"hi",1}, {"bye",2}, {"huh", 3}});
+  for(auto iter : map_output){
+    std::cout << iter.first << " -> " << iter.second << std::endl;
+  }
+
   return 0;
 }

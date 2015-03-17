@@ -67,3 +67,10 @@ function double_vector_elements(vec)
    end
    return vec
 end
+
+function double_map_elements(map)
+   for key,value in pairs(map) do
+      map[key] = 2*value
+   end
+   return map
+end

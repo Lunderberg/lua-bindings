@@ -2,6 +2,7 @@
 #define _LUAREAD_H_
 
 #include <iostream>
+#include <map>
 #include <memory>
 #include <tuple>
 #include <vector>
@@ -10,6 +11,7 @@
 
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaPush.hh"
 #include "LuaRegistryNames.hh"
 #include "LuaTableReference.hh"
 #include "TemplateUtils.hh"
@@ -80,14 +82,41 @@ namespace Lua{
   template<typename T>
   struct ReadDefaultType<std::vector<T> >{
     static std::vector<T> Read(lua_State* L, int index){
-      Lua::LuaObject table(L, index);
       std::vector<T> output;
+
+      Lua::LuaObject table(L, index);
       int table_size = table.Length();
 
       for(int i=0; i<table_size; i++){
-        auto value = table[i].Cast<T>();
-        output.push_back(value);
+        output.push_back(table[i].Cast<T>());
       }
+      return output;
+    }
+  };
+
+  template<typename T>
+  struct ReadDefaultType<std::map<std::string, T> >{
+    static std::map<std::string, T> Read(lua_State* L, int index){
+      index = lua_absindex(L, index); // In case of negative index
+      std::map<std::string, T> output;
+
+      Lua::LuaObject table(L, index);
+
+      lua_pushnil(L);
+      LuaDelayedPop delay(L, 1);
+      while(lua_next(L, index) ){
+        LuaDelayedPop delay(L, 1);
+        std::string key = Lua::Read<std::string>(L, -2);
+        T value = Lua::Read<T>(L, -1);
+        output[key] = value;
+        lua_pop(L, 2); // Reading a string may modify its contents.  Therefore, replacing it.
+        delay.SetNumPop(0);
+        Lua::Push(L, key);
+      }
+      // The last call of lua_next pushes nothing to the stack.
+      // We needed the safe-guard as any of the Lua::Read calls could throw,
+      //   but now it must be disabled.
+      delay.SetNumPop(0);
       return output;
     }
   };
