@@ -112,10 +112,18 @@ int main(){
   }
   std::cout << std::endl;
 
-  auto map_output = L.Call<std::map<std::string, int> >("double_map_elements", std::map<std::string, int>{{"hi",1}, {"bye",2}, {"huh", 3}});
+  auto map_output = L.Call<std::map<std::string, int> >("double_map_elements", std::map<std::string, int>{
+      {"hi",1}, {"bye",2}, {"huh", 3}});
   for(auto iter : map_output){
     std::cout << iter.first << " -> " << iter.second << std::endl;
   }
+
+  auto thread = L.NewCoroutine("yielding_func");
+  thread.Resume(5);
+  thread.Resume(6);
+  std::cout << "Thread returned " << thread.Resume<int>() << std::endl;
+  thread.Resume();
+
 
   return 0;
 }

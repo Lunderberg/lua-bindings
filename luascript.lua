@@ -74,3 +74,13 @@ function double_map_elements(map)
    end
    return map
 end
+
+function yielding_func(a)
+   print('a = '..a)
+   b = coroutine.yield()
+   print('b = '..b)
+   coroutine.yield()
+   print('c = ')
+   coroutine.yield(42)
+   print('d = ')
+end

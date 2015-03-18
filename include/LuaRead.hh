@@ -139,9 +139,14 @@ namespace Lua{
   }
 
   template<typename T>
-  T Read(lua_State* L, int index){
+  typename std::enable_if<!std::is_same<T, void>::value, T>::type
+  Read(lua_State* L, int index){
     return ReadDirectIfPossible<T>(L, index, true);
   }
+
+  template<typename T>
+  typename std::enable_if<std::is_same<T, void>::value, T>::type
+  Read(lua_State*, int) { }
 
 }
 

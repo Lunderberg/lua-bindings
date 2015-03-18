@@ -16,7 +16,7 @@ Lua::LuaState::~LuaState() {
 void Lua::LuaState::LoadFile(const char* filename) {
   int load_result = luaL_loadfile(L, filename);
   if(load_result){
-    auto error_message = Read<std::string>();
+    auto error_message = Lua::Read<std::string>(L, -1);
     if(load_result == LUA_ERRFILE){
       throw LuaFileNotFound(filename);
     } else {
@@ -26,7 +26,7 @@ void Lua::LuaState::LoadFile(const char* filename) {
 
   int run_result = lua_pcall(L, 0, LUA_MULTRET, 0);
   if(run_result){
-    auto error_message = Read<std::string>();
+    auto error_message = Lua::Read<std::string>(L, -1);
     throw LuaFileExecuteError(error_message);
   }
 }

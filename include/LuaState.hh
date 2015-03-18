@@ -16,6 +16,7 @@
 #include "LuaCallable.hh"
 #include "LuaCallable_CppFunction.hh"
 #include "LuaCallable_MemberFunction.hh"
+#include "LuaCoroutine.hh"
 #include "LuaDelayedPop.hh"
 #include "LuaExceptions.hh"
 #include "LuaMakeClass.hh"
@@ -100,7 +101,7 @@ namespace Lua{
       @throws LuaFunctionExecuteError A lua error occurred during execution.
     */
     template<typename return_type=void, typename... Params>
-    return_type Call(const char* name, Params... params){
+    return_type Call(const char* name, Params&&... params){
       int top = lua_gettop(L);
       lua_getglobal(L, name);
       PushMany(std::forward<Params>(params)...);
@@ -108,10 +109,10 @@ namespace Lua{
       int nresults= lua_gettop(L) - top;
       LuaDelayedPop delayed(L, nresults);
       if(result){
-        auto error_message = Read<std::string>();
+        auto error_message = Read<std::string>(L, -1);
         throw LuaFunctionExecuteError(error_message);
       }
-      return Read<return_type>(top - nresults);
+      return Lua::Read<return_type>(L, top - nresults);
     }
 
     Lua::LuaObject NewTable();
@@ -119,6 +120,10 @@ namespace Lua{
     template<typename ClassType>
     Lua::MakeClass<ClassType> MakeClass(std::string name){
       return Lua::MakeClass<ClassType>(L, name);
+    }
+
+    LuaCoroutine NewCoroutine(const char* name){
+      return LuaCoroutine(L, name);
     }
 
   private:
@@ -141,32 +146,6 @@ namespace Lua{
       Lua::Push(L, t);
       return Lua::LuaObject(L);
     }
-
-    //! Read value off of the current stack.
-    /*! Read value off of the current stack.
-
-      Assumes that it is possible to convert to the requrest type.
-      Fails at compile time otherwise.
-
-      @throws LuaInvalidStackContents  The stack position given cannot be converted to the requested type.
-    */
-    template<typename T>
-    typename std::enable_if<!std::is_same<T, void>::value, T>::type
-    Read(int stack_pos = -1){
-      return Lua::Read<T>(L, stack_pos);
-    }
-
-    //! Reads no value from the current stack.
-    /*! Another stunningly useful function, no?
-      Needed for the Call function, which can have a return type of void.
-    */
-    template<typename T>
-    typename std::enable_if<std::is_same<T, void>::value, T>::type
-    Read() { }
-
-    template<typename T>
-    typename std::enable_if<std::is_same<T, void>::value, T>::type
-    Read(int) { }
 
     //! The internal lua state.
     lua_State* L;
