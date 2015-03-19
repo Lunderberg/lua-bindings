@@ -1,4 +1,4 @@
-Import('env', 'lua')
+Import('env', 'lua_bindings')
 
 env = env.Clone()
 env['SHELL'] = 'bash'
@@ -8,6 +8,5 @@ env.Append(CPPPATH=['gtest-1.7.0', 'gtest-1.7.0/include'])
 env.Append(CCFLAGS=['-Wno-missing-field-initializers'])
 env.Append(LIBS=['pthread'])
 
-env.Append(LIBS=[lua])
 prog = env.Program('run_tests',[Glob('*.cc'), 'gtest-1.7.0/src/gtest-all.cc'])[0]
 env.Command('test_results.txt', prog, './$SOURCE | tee $TARGET')

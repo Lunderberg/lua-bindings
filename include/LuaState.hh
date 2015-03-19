@@ -52,7 +52,35 @@ namespace Lua{
     /*! Loads a file, then executes.
       May raise LuaFileNotFound, LuaFileExecuteError, or LuaFileParseError.
     */
-    void LoadFile(const char* filename);
+    template<typename RetVal=void, typename... Params>
+    RetVal LoadFile(const char* filename, Params&&... params){
+      int load_result = luaL_loadfile(L, filename);
+      if(load_result){
+        auto error_message = Lua::Read<std::string>(L, -1);
+        if(load_result == LUA_ERRFILE){
+          throw LuaFileNotFound(filename);
+        } else {
+          throw LuaFileParseError(error_message);
+        }
+      }
+
+      return CallFromStack<RetVal>(std::forward<Params>(params)...);
+    }
+
+    //! Load a string into Lua
+    /*! Loads a string, then executes.
+      May raise LuaFileExecuteError, or LuaFileParseError.
+    */
+    template<typename RetVal=void, typename... Params>
+    RetVal LoadString(const std::string& lua_code, Params&&... params){
+      int load_result = luaL_loadstring(L, lua_code.c_str());
+      if(load_result){
+        auto error_message = Lua::Read<std::string>(L, -1);
+        throw LuaFileParseError(error_message);
+      }
+
+      return CallFromStack<RetVal>(std::forward<Params>(params)...);
+    }
 
     //! Load all standard Lua libraries.
     /*! Loads all standard Lua libraries
@@ -100,19 +128,10 @@ namespace Lua{
       @throws LuaInvalidStackContents The return value cannot be converted to the requested type.
       @throws LuaFunctionExecuteError A lua error occurred during execution.
     */
-    template<typename return_type=void, typename... Params>
-    return_type Call(const char* name, Params&&... params){
-      int top = lua_gettop(L);
+    template<typename RetVal=void, typename... Params>
+    RetVal Call(const char* name, Params&&... params){
       lua_getglobal(L, name);
-      PushMany(std::forward<Params>(params)...);
-      int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
-      int nresults= lua_gettop(L) - top;
-      LuaDelayedPop delayed(L, nresults);
-      if(result){
-        auto error_message = Read<std::string>(L, -1);
-        throw LuaFunctionExecuteError(error_message);
-      }
-      return Lua::Read<return_type>(L, top - nresults);
+      return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
     Lua::LuaObject NewTable();
@@ -145,6 +164,20 @@ namespace Lua{
     Lua::LuaObject Push(T t){
       Lua::Push(L, t);
       return Lua::LuaObject(L);
+    }
+
+    template<typename RetVal=void, typename... Params>
+    RetVal CallFromStack(Params&&... params){
+      int top = lua_gettop(L) - 1; // -1 because the function is already on the stack.
+      PushMany(std::forward<Params>(params)...);
+      int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
+      int nresults = lua_gettop(L) - top;
+      LuaDelayedPop delayed(L, nresults);
+      if(result){
+        auto error_message = Read<std::string>(L, -1);
+        throw LuaExecuteError(error_message);
+      }
+      return Lua::Read<RetVal>(L, top - nresults);
     }
 
     //! The internal lua state.

@@ -17,8 +17,6 @@ Exception(LuaException, LuaInvalidStackContents);
 Exception(LuaException, LuaFileParseError);
 
 Exception(LuaException, LuaExecuteError);
-Exception(LuaExecuteError, LuaFileExecuteError);
-Exception(LuaExecuteError, LuaFunctionExecuteError);
 Exception(LuaExecuteError, LuaCoroutineExecuteError);
 
 Exception(LuaException, LuaCppCallError);
