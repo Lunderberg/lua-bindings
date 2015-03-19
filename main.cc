@@ -34,9 +34,7 @@ std::tuple<int, int> multiple_returns(){
 class TestClass{
 public:
   TestClass() : x(0) { }
-  ~TestClass() {
-    std::cout << "TestClass destructor called" << std::endl;
-  }
+  ~TestClass() { }
   int GetX(){ return x; }
   void SetX(int x){ this->x = x; }
 

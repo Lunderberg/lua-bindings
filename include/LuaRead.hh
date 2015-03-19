@@ -94,7 +94,7 @@ namespace Lua{
       int table_size = table.Length();
 
       for(int i=0; i<table_size; i++){
-        output.push_back(table[i].Cast<T>());
+        output.push_back(table[i+1].Cast<T>());
       }
       return output;
     }

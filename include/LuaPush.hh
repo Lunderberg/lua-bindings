@@ -107,11 +107,24 @@ namespace Lua{
     }
   }
 
+  // Need separate specialization for l-value reference, r-value reference.
+  // Otherwise, it will try to make a std::shared_ptr<T&>, which is nonsensical.
   template<typename T>
-  void PushValueDefault(lua_State* L, const T& t){
-    auto obj = std::make_shared<T>(t);
-    PushValueDirect(L, obj);
-  }
+  struct PushDefaultType{
+    static void Push(lua_State* L, T&& t){
+      auto obj = std::make_shared<T>(t);
+      PushValueDirect(L, obj);
+    }
+  };
+
+  // And here is the case for l-value references.
+  template<typename T>
+  struct PushDefaultType<T&>{
+    static void Push(lua_State* L, T& t){
+      auto obj = std::make_shared<T>(t);
+      PushValueDirect(L, obj);
+    }
+  };
 
   template<typename T>
   auto PushDirectIfPossible(lua_State* L, T t, bool)
@@ -120,8 +133,8 @@ namespace Lua{
   }
 
   template<typename T>
-  void PushDirectIfPossible(lua_State* L, T t, int) {
-    PushValueDefault<T>(L, std::forward<T>(t));
+  void PushDirectIfPossible(lua_State* L, T&& t, int) {
+    PushDefaultType<T>::Push(L, std::forward<T>(t));
   }
 
   template<typename T>
