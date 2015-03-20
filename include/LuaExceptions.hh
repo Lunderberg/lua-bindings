@@ -24,6 +24,8 @@ Exception(LuaCppCallError, LuaIncorrectUserData);
 
 Exception(LuaException, LuaClassNotRegistered);
 
+Exception(LuaException, LuaRuntimeTooLong);
+
 #undef Exception
 
 #endif /* _LUAEXCEPTIONS_H_ */
