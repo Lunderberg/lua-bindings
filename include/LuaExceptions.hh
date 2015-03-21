@@ -18,6 +18,7 @@ Exception(LuaException, LuaFileParseError);
 
 Exception(LuaException, LuaExecuteError);
 Exception(LuaExecuteError, LuaCoroutineExecuteError);
+Exception(LuaExecuteError, LuaOutOfMemoryError);
 
 Exception(LuaException, LuaCppCallError);
 Exception(LuaCppCallError, LuaIncorrectUserData);

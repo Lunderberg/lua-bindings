@@ -27,6 +27,8 @@
 #include "TemplateUtils.hh"
 
 namespace Lua{
+  void* limited_memory_alloc(void* ud, void* ptr, size_t osize, size_t nsize);
+
   class LuaState {
   public:
 
@@ -47,6 +49,22 @@ namespace Lua{
       As tpphe framework becomes more fully-featured, this may become a private function.
     */
     lua_State* state() { return L; }
+
+    //! Returns the current memory used, in bytes.
+    /*! Returns all memory allocated by the lua virtual machine.
+      Note that this does not include any classes that are constructed by Lua,
+        only memory held directly by the virtual machine.
+     */
+    unsigned long GetMemoryUsage(){ return memory[0]; }
+
+    //! Set the limit of memory that can be used by the virtual machine.
+    /*! The limit, in bytes, of the memory that can be allocated by the virtual machine.
+      To allow any size allocation, set the maximum as 0.
+     */
+    void SetMaxMemory(unsigned long max_memory){ memory[1] = max_memory; }
+
+    //! Returns the current memory limit.
+    unsigned long GetMaxMemory(){ return memory[1]; }
 
     //! Load a file into Lua
     /*! Loads a file, then executes.
@@ -175,13 +193,24 @@ namespace Lua{
       LuaDelayedPop delayed(L, nresults);
       if(result){
         auto error_message = Read<std::string>(L, -1);
-        throw LuaExecuteError(error_message);
+        if(result == LUA_ERRMEM){
+          throw LuaOutOfMemoryError(error_message);
+        } else {
+          throw LuaExecuteError(error_message);
+        }
       }
       return Lua::Read<RetVal>(L, top - nresults);
     }
 
     //! The internal lua state.
     lua_State* L;
+    //! The total memory used and allowed
+    /*! Keeps track of the memory allocated by the Lua virtual machine.
+      memory[0] is the size in bytes that have been allocated.
+      memory[1] is the maximum size in bytes.
+      If memory[1] is 0, there is no restriction.
+     */
+    unsigned long memory[2];
   };
 }
 
