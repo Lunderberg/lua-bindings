@@ -34,7 +34,7 @@ env.Append(CCFLAGS=['-O3'])
 
 env.Append(CPPPATH=['#/include'])
 env.Append(CPPPATH=['#/lua-5.3.0/src'])
-lua_bindings = env.StaticLibrary('lua-5.3.0/lua',[Glob('lua-5.3.0/src/*.c'), Glob('src/*.cc')],
+lua_bindings = env.StaticLibrary('lua-5.3.0/lua',[Glob('lua-5.3.0/src/*.cc'), Glob('src/*.cc')],
                                  CPPDEFINES=['LUA_COMPAT_5_2','LUA_USE_LINUX'])
 env.Append(LIBS=[lua_bindings, 'dl'])
 
