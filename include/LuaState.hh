@@ -72,7 +72,7 @@ namespace Lua{
     */
     template<typename RetVal=void, typename... Params>
     RetVal LoadFile(const char* filename, Params&&... params){
-      int load_result = luaL_loadfile(L, filename);
+      int load_result = luaL_loadfilex(L, filename, "t");
       if(load_result){
         auto error_message = Lua::Read<std::string>(L, -1);
         if(load_result == LUA_ERRFILE){
