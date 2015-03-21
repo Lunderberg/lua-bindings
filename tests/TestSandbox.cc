@@ -24,6 +24,6 @@ TEST(LuaSandbox, RestrictedFunctions){
   // os.time is available inside package
   L.LoadString("os.time()");
 
-  EXPECT_THROW(L.LoadString("io.popen('echo hi')"),
+  EXPECT_THROW(L.LoadString("os.execute('echo hi')"),
                LuaExecuteError);
 }
