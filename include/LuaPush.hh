@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <functional>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,6 +21,8 @@
 namespace Lua{
   class LuaObject;
   class LuaCallable;
+  template<typename T>
+  class LuaTableReference;
 
   void PushValueDirect(lua_State* L, lua_CFunction t);
   void PushValueDirect(lua_State* L, const char* string);
@@ -27,6 +30,11 @@ namespace Lua{
   void PushValueDirect(lua_State* L, LuaObject& obj);
   void PushValueDirect(lua_State* L, LuaCallable* callable);
   void PushValueDirect(lua_State* L, bool b);
+
+  template<typename T>
+  void PushValueDirect(lua_State*, LuaTableReference<T> ref){
+    ref.Get();
+  }
 
   template<typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params);

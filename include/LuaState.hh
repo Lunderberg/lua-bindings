@@ -106,6 +106,9 @@ namespace Lua{
     */
     void LoadLibs();
 
+    //! Loads all libraries that are safe for untrusted users.
+    void LoadSafeLibs();
+
     //! Sets a global variable.
     /*! Sets a global variable.
       Will define a global variable inside the Lua environment.

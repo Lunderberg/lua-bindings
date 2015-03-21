@@ -38,7 +38,7 @@ TEST(LuaFunctions, MultiReturn){
   EXPECT_EQ(res, std::make_tuple(3,4));
 }
 
-TEST(LuaFUnctions, ReturnTable){
+TEST(LuaFunctions, ReturnTable){
   Lua::LuaState L;
   L.LoadString("function vector_int_return() "
                "  return {1,2,3,4} "

@@ -4,9 +4,7 @@
 #include "LuaRead.hh"
 
 Lua::LuaObject::LuaObject(lua_State* L, int stack_pos) :
-  L(L) {
-  this->stack_pos = lua_absindex(L, stack_pos);
-}
+  L(L), stack_pos(lua_absindex(L, stack_pos)) { }
 
 int Lua::LuaObject::LuaType(){
   return lua_type(L, stack_pos);

@@ -1,6 +1,8 @@
 #ifndef _LUATABLEREFERENCE_H_
 #define _LUATABLEREFERENCE_H_
 
+#include <iostream>
+
 #include <lua.hpp>
 
 #include "LuaDelayedPop.hh"
@@ -11,13 +13,24 @@ namespace Lua{
   class LuaTableReference{
   public:
     LuaTableReference(lua_State* L, int table_stack_pos, T key)
-      : L(L), table_stack_pos(table_stack_pos), key(key) { }
+      : L(L), table_stack_pos(lua_absindex(L, table_stack_pos)), key(key) { }
 
     template<typename V>
-    LuaTableReference& operator=(V value){
+    LuaTableReference& operator=(V&& value){
+      return Set(std::forward<V>(value));
+    }
+
+    //! Must be used when setting a reference equal to another reference.
+    /*! Otherwise, the copy constructor is called instead.
+      I can't figure out a way around this.
+     */
+    template<typename V>
+    LuaTableReference& Set(V value){
       Push(L, key);
       Push(L, value);
+
       lua_settable(L, table_stack_pos);
+
       return *this;
     }
 

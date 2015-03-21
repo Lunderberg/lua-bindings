@@ -37,3 +37,17 @@ TEST(LuaGlobals, ReadTable){
   auto y = L.GetGlobal("y");
   EXPECT_THROW(y[1], LuaInvalidStackContents);
 }
+
+TEST(LuaGlobals, TransferBetweenTables){
+  Lua::LuaState L;
+
+  L.LoadString("x = {a = 5, b = 'hi', [1] = 12345}");
+  auto x = L.GetGlobal("x");
+
+  auto y = L.NewTable();
+  y["a"] = x["a"].Cast<int>();
+  y["b"].Set(x["b"]);
+
+  EXPECT_EQ(y["a"].Cast<int>(), 5);
+  EXPECT_EQ(y["b"].Cast<std::string>(), "hi");
+}
