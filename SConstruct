@@ -1,3 +1,5 @@
+import os
+
 env = Environment()
 
 # More readable output
@@ -32,10 +34,8 @@ env.Append(CXXFLAGS=['-std=c++11'])
 env.Append(CCFLAGS=['-Wall','-Wextra','-g'])
 env.Append(CCFLAGS=['-O3'])
 
-env.Append(CPPPATH=['#/include'])
-env.Append(CPPPATH=['#/lua-5.3.0/src'])
-lua_bindings = env.StaticLibrary('lua-5.3.0/lua',[Glob('lua-5.3.0/src/*.cc'), Glob('src/*.cc')],
-                                 CPPDEFINES=['LUA_COMPAT_5_2','LUA_USE_LINUX'])
+env.Append(CPPPATH=[Dir('include')])
+lua_bindings = env.SConscript('SConscript','env')
 env.Append(LIBS=[lua_bindings, 'dl'])
 
 env.Program('main','main.cc')
