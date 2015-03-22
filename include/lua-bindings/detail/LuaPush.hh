@@ -15,6 +15,7 @@
 
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaPointerType.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
@@ -75,9 +76,54 @@ namespace Lua{
       throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
     }
 
-    void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<T>) );
-    std::memset(userdata, 0, sizeof(std::shared_ptr<T>));
-    *static_cast<std::shared_ptr<T>*>(userdata) = t;
+    int memsize = sizeof(VariablePointer<T>);
+    void* userdata = lua_newuserdata(L, memsize );
+    std::memset(userdata, 0, memsize);
+
+    auto ptr = static_cast<VariablePointer<T>*>(userdata);
+    ptr->type = PointerType::shared_ptr;
+    ptr->pointers.shared_ptr = t;
+
+    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+  }
+
+  template<typename T>
+  void PushValueDirect(lua_State* L, std::weak_ptr<T> t){
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
+    if(!metatable_exists){
+      throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
+    }
+
+    int memsize = sizeof(VariablePointer<T>);
+    void* userdata = lua_newuserdata(L, memsize );
+    std::memset(userdata, 0, memsize);
+
+    auto ptr = static_cast<VariablePointer<T>*>(userdata);
+    ptr->type = PointerType::weak_ptr;
+    ptr->pointers.weak_ptr = t;
+
+    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+  }
+
+  // LuaCallable (and subclasses) is the only thing that is currently pushed by pointer.
+  // Need the std::enable_if to make sure that this doesn't override that behavior.
+  template<typename T>
+  typename std::enable_if<!std::is_base_of<LuaCallable, T>::value >::type
+  PushValueDirect(lua_State* L, T* t){
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
+    if(!metatable_exists){
+      throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
+    }
+
+    int memsize = sizeof(VariablePointer<T>);
+    void* userdata = lua_newuserdata(L, memsize );
+    std::memset(userdata, 0, memsize);
+
+    auto ptr = static_cast<VariablePointer<T>*>(userdata);
+    ptr->type = PointerType::c_ptr;
+    ptr->pointers.c_ptr = t;
 
     luaL_setmetatable(L, class_registry_entry<T>().c_str());
   }

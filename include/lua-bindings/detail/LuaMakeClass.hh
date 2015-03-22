@@ -1,6 +1,7 @@
 #ifndef _LUAMAKECLASS_H_
 #define _LUAMAKECLASS_H_
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,15 +11,35 @@
 #include "LuaCallable_MemberFunction.hh"
 #include "LuaCallable_ObjectConstructor.hh"
 #include "LuaObject.hh"
+#include "LuaPointerType.hh"
 #include "LuaPush.hh"
 
 int garbage_collect_arbitrary_object(lua_State* L);
 
 namespace Lua{
+
   template<typename T>
-  void delete_from_void_pointer(void* obj){
-    std::shared_ptr<T>* class_obj = static_cast<std::shared_ptr<T>*>(obj);
-    class_obj->~shared_ptr();
+  void delete_from_void_pointer(void* storage){
+    auto ptr = static_cast<VariablePointer<T>*>(storage);
+
+    switch(ptr->type){
+    case PointerType::shared_ptr:
+      {
+        ptr->pointers.shared_ptr.~shared_ptr();
+      }
+      break;
+    case PointerType::weak_ptr:
+      {
+        ptr->pointers.weak_ptr.~weak_ptr();
+      }
+      break;
+    case PointerType::c_ptr:
+      break;
+    default:
+      // Unknown pointer type, should never reach here.
+      assert(false);
+    }
+
   }
 
   template<typename ClassType>

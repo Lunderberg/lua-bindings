@@ -1,6 +1,7 @@
 #ifndef _LUAREAD_H_
 #define _LUAREAD_H_
 
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -11,6 +12,7 @@
 
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaPointerType.hh"
 #include "LuaPush.hh"
 #include "LuaRegistryNames.hh"
 #include "LuaTableReference.hh"
@@ -49,6 +51,21 @@ namespace Lua{
   }
 
   template<typename T>
+  VariablePointer<T>* ReadVariablePointer(lua_State* L, int index){
+    if(!lua_isuserdata(L, index)){
+      throw LuaInvalidStackContents("Value was not userdata");
+    }
+
+    void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
+
+    if(!storage){
+      throw LuaInvalidStackContents("Value could not be converted to requested type.");
+    }
+
+    return static_cast<VariablePointer<T>*>(storage);
+  }
+
+  template<typename T>
   struct ReadDefaultType{
     static T Read(lua_State* L, int index){
       auto obj = ReadDefaultType<std::shared_ptr<T> >::Read(L, index);
@@ -59,18 +76,61 @@ namespace Lua{
   template<typename T>
   struct ReadDefaultType<std::shared_ptr<T> >{
     static std::shared_ptr<T> Read(lua_State* L, int index){
-      if(!lua_isuserdata(L, index)){
-        throw LuaInvalidStackContents("Value was not userdata");
+      auto ptr = ReadVariablePointer<T>(L, index);
+      if(ptr->type == PointerType::shared_ptr){
+        return ptr->pointers.shared_ptr;
+
+      } else if(ptr->type == PointerType::weak_ptr) {
+        auto output = ptr->pointers.weak_ptr.lock();
+        if(output){
+          return output;
+        } else {
+          throw LuaExpiredWeakPointer("Weak_ptr returned was no longer valid");
+        }
+
+      } else {
+        throw LuaIncorrectPointerType("Variable requested was not a shared_ptr");
       }
 
-      void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
+    }
+  };
 
-      if(!storage){
-        throw LuaInvalidStackContents("Value could not be converted to requested type.");
+  template<typename T>
+  struct ReadDefaultType<std::weak_ptr<T> >{
+    static std::weak_ptr<T> Read(lua_State* L, int index){
+      auto ptr = ReadVariablePointer<T>(L, index);
+      if(ptr->type != PointerType::weak_ptr){
+        throw LuaIncorrectPointerType("Variable requested was not a weak_ptr");
       }
+      return ptr->pointers.weak_ptr;
+    }
+  };
 
-      std::shared_ptr<T> obj = *static_cast<std::shared_ptr<T>*>(storage);
-      return obj;
+  template<typename T>
+  struct ReadDefaultType<T*>{
+    static T* Read(lua_State* L, int index){
+      auto ptr = ReadVariablePointer<T>(L, index);
+      switch(ptr->type){
+      case PointerType::shared_ptr:
+        return ptr->pointers.shared_ptr.get();
+
+      case PointerType::weak_ptr:
+        {
+          auto lock = ptr->pointers.weak_ptr.lock();
+          if(lock){
+            return lock.get();
+          } else {
+            throw LuaIncorrectPointerType("Variable requested was not a weak_ptr");
+          }
+        }
+
+      case PointerType::c_ptr:
+        return ptr->pointers.c_ptr;
+
+      default:
+        // Should never reach here.
+        assert(false);
+      }
     }
   };
 

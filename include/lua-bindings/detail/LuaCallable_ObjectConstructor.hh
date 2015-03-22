@@ -10,6 +10,7 @@
 #include "LuaCallable.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaPointerType.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
@@ -30,11 +31,15 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      void* userdata = lua_newuserdata(L, sizeof(std::shared_ptr<ClassType>));
-      std::memset(userdata, 0, sizeof(std::shared_ptr<ClassType>));
+      int memsize = sizeof(VariablePointer<ClassType>);
+      void* storage = lua_newuserdata(L, memsize);
+      std::memset(storage, 0, memsize);
+
+
+      auto ptr = static_cast<VariablePointer<ClassType>*>(storage);
 
       auto object = std::make_shared<ClassType>(Read<Params>(L, Indices+1)...);
-      *static_cast<std::shared_ptr<ClassType>* >(userdata) = object;
+      ptr->pointers.shared_ptr = object;
 
       luaL_newmetatable(L, class_registry_entry<ClassType>().c_str());
       lua_setmetatable(L, -2);

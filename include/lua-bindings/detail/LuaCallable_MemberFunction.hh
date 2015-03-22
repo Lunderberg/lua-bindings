@@ -1,6 +1,7 @@
 #ifndef _LUACALLABLE_MEMBERFUNCTION_H_
 #define _LUACALLABLE_MEMBERFUNCTION_H_
 
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -9,6 +10,8 @@
 #include "LuaCallable.hh"
 #include "LuaExceptions.hh"
 #include "LuaObject.hh"
+#include "LuaPointerType.hh"
+#include "LuaPush.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
@@ -26,15 +29,38 @@ namespace Lua{
       }
 
       void* storage = luaL_testudata(L, 1, class_registry_entry<ClassType>().c_str());
+      lua_remove(L, 1);
 
       if(!storage){
         throw LuaIncorrectUserData("Called method using incorrect type");
       }
 
-      auto obj = *static_cast<std::shared_ptr<ClassType>*>(storage);
-      lua_remove(L, 1);
+      auto ptr = static_cast<VariablePointer<ClassType>*>(storage);
 
-      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *obj, func);
+      switch(ptr->type){
+      case PointerType::shared_ptr:
+        {
+          return call_member_function_helper(build_indices<sizeof...(Params)>(),
+                                             L, *ptr->pointers.shared_ptr, func);
+        }
+      case PointerType::weak_ptr:
+        {
+          if(auto lock = ptr->pointers.weak_ptr.lock()){
+            return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *lock, func);
+          } else {
+            Push(L, "Bad weak_ptr");
+            return 1;
+          }
+        }
+      case PointerType::c_ptr:
+        {
+          return call_member_function_helper(build_indices<sizeof...(Params)>(),
+                                             L, *ptr->pointers.c_ptr, func);
+        }
+      default:
+        std::cout << "Calling on unknown pointer type, should never happen" << std::endl;
+        assert(false);
+      }
     }
   private:
     RetVal (ClassType::*func)(Params...);

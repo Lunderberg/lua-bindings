@@ -14,6 +14,8 @@ struct LuaException : public std::runtime_error{
 
 Exception(LuaException, LuaFileNotFound);
 Exception(LuaException, LuaInvalidStackContents);
+Exception(LuaInvalidStackContents, LuaIncorrectPointerType);
+Exception(LuaInvalidStackContents, LuaExpiredWeakPointer);
 Exception(LuaException, LuaFileParseError);
 
 Exception(LuaException, LuaExecuteError);
