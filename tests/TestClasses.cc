@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "LuaState.hh"
+#include "lua-bindings/LuaState.hh"
 
 namespace{
   int constructor_called = 0;

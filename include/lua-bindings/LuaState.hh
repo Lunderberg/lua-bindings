@@ -13,18 +13,18 @@
 #include <lua.hpp>
 
 
-#include "LuaCallable.hh"
-#include "LuaCallable_CppFunction.hh"
-#include "LuaCallable_MemberFunction.hh"
-#include "LuaCoroutine.hh"
-#include "LuaDelayedPop.hh"
-#include "LuaExceptions.hh"
-#include "LuaMakeClass.hh"
-#include "LuaObject.hh"
-#include "LuaPush.hh"
-#include "LuaRead.hh"
-#include "LuaTableReference.hh"
-#include "TemplateUtils.hh"
+#include "detail/LuaCallable.hh"
+#include "detail/LuaCallable_CppFunction.hh"
+#include "detail/LuaCallable_MemberFunction.hh"
+#include "detail/LuaCoroutine.hh"
+#include "detail/LuaDelayedPop.hh"
+#include "detail/LuaExceptions.hh"
+#include "detail/LuaMakeClass.hh"
+#include "detail/LuaObject.hh"
+#include "detail/LuaPush.hh"
+#include "detail/LuaRead.hh"
+#include "detail/LuaTableReference.hh"
+#include "detail/TemplateUtils.hh"
 
 namespace Lua{
   void* limited_memory_alloc(void* ud, void* ptr, size_t osize, size_t nsize);

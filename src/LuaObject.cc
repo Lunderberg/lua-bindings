@@ -1,7 +1,7 @@
-#include "LuaObject.hh"
+#include "lua-bindings/detail/LuaObject.hh"
 
-#include "LuaDelayedPop.hh"
-#include "LuaRead.hh"
+#include "lua-bindings/detail/LuaDelayedPop.hh"
+#include "lua-bindings/detail/LuaRead.hh"
 
 Lua::LuaObject::LuaObject(lua_State* L, int stack_pos) :
   L(L), stack_pos(lua_absindex(L, stack_pos)) { }

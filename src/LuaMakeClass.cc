@@ -1,8 +1,6 @@
-#include "LuaMakeClass.hh"
+#include "lua-bindings/detail/LuaMakeClass.hh"
 
-#include "LuaObject.hh"
-
-#include <iostream>
+#include "lua-bindings/detail/LuaObject.hh"
 
 int garbage_collect_arbitrary_object(lua_State* L){
   void* storage = lua_touserdata(L, lua_upvalueindex(1));

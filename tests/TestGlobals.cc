@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "LuaState.hh"
+#include "lua-bindings/LuaState.hh"
 
 TEST(LuaGlobals, ReadWriteIntegers){
   Lua::LuaState L;

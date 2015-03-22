@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#include "LuaState.hh"
+#include "lua-bindings/LuaState.hh"
 
 TEST(LuaFunctions, VoidFunction){
   Lua::LuaState L;

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "LuaState.hh"
+#include "lua-bindings/LuaState.hh"
 
 TEST(LuaCoroutines, RunCoroutine){
   Lua::LuaState L;

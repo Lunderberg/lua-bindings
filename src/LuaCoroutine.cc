@@ -1,4 +1,4 @@
-#include "LuaCoroutine.hh"
+#include "lua-bindings/detail/LuaCoroutine.hh"
 
 bool Lua::LuaCoroutine::ended_by_timeout = false;
 

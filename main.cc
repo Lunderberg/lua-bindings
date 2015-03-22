@@ -2,7 +2,7 @@
 #include <string>
 #include <tuple>
 
-#include "LuaState.hh"
+#include "lua-bindings/LuaState.hh"
 
 int main(){
   Lua::LuaState L;

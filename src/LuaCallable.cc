@@ -1,6 +1,6 @@
-#include "LuaCallable.hh"
+#include "lua-bindings/detail/LuaCallable.hh"
 
-int call_cpp_function(lua_State* L){
+int Lua::call_cpp_function(lua_State* L){
   void* storage = lua_touserdata(L, 1);
   Lua::LuaCallable* callable = *static_cast<Lua::LuaCallable**>(storage);
   lua_remove(L, 1);
@@ -8,7 +8,7 @@ int call_cpp_function(lua_State* L){
   return args_returned;
 }
 
-int garbage_collect_cpp_function(lua_State* L){
+int Lua::garbage_collect_cpp_function(lua_State* L){
   void* storage = lua_touserdata(L, 1);
   Lua::LuaCallable* callable = *static_cast<Lua::LuaCallable**>(storage);
   delete callable;

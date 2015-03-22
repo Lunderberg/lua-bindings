@@ -1,4 +1,4 @@
-#include "LuaTableReference.hh"
+#include "lua-bindings/detail/LuaTableReference.hh"
 
 
 Lua::LuaTableReference<std::string> Lua::LuaObject::operator[](std::string key){

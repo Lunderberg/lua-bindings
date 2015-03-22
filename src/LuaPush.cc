@@ -1,9 +1,9 @@
-#include "LuaPush.hh"
+#include "lua-bindings/detail/LuaPush.hh"
 
-#include "LuaCallable.hh"
-#include "LuaObject.hh"
-#include "LuaRegistryNames.hh"
-#include "LuaTableReference.hh"
+#include "lua-bindings/detail/LuaCallable.hh"
+#include "lua-bindings/detail/LuaObject.hh"
+#include "lua-bindings/detail/LuaRegistryNames.hh"
+#include "lua-bindings/detail/LuaTableReference.hh"
 
 void Lua::PushValueDirect(lua_State* L, lua_CFunction t){
   lua_pushcfunction(L, t);
