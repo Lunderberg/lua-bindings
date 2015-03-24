@@ -19,6 +19,18 @@ namespace Lua{
   template<typename ClassType, typename T>
   class LuaCallable_MemberFunction;
 
+  //! A wrapper around a member function, to be called from Lua.
+  /*! Implements the LuaCallable interface.
+    Verifies that the function was called with the correct parameters,
+      and that the calling class is of the appropriate type.
+    Reads each argument from the stack, calls the function,
+      then pushes the result back onto the stack.
+
+    Will read the stored value as a shared_ptr, weak_ptr, or c-style pointer,
+      depending on which it was stored as.
+    If the weak_ptr no longer points to a valid object,
+      the method will return nil.
+   */
   template<typename ClassType, typename RetVal, typename... Params>
   class LuaCallable_MemberFunction<ClassType, RetVal(Params...)> : public LuaCallable {
   public:
@@ -48,7 +60,7 @@ namespace Lua{
           if(auto lock = ptr->pointers.weak_ptr.lock()){
             return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *lock, func);
           } else {
-            Push(L, "Bad weak_ptr");
+            Push(L, LuaNil());
             return 1;
           }
         }
@@ -62,9 +74,12 @@ namespace Lua{
         assert(false);
       }
     }
+
   private:
+    //! Holds the method pointer.
     RetVal (ClassType::*func)(Params...);
 
+    //! As in LuaCallable_CppFunction, needing to extract indices.
     template<int... Indices, typename RetVal_func>
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
                                            RetVal_func (ClassType::*func)(Params...)){
@@ -77,6 +92,7 @@ namespace Lua{
     // g++ incorrectly flags lua_State* L as being unused when Params... is empty
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+    //! As in LuaCallable_CppFunction, need to have a special case for void.
     template<int... Indices>
     static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
                                            void (ClassType::*func)(Params...)){

@@ -3,6 +3,11 @@
 
 #include <lua.hpp>
 
+//! Utility class for popping values.
+/*! Utility class, for internal use.
+  Pops values from the lua stack in the destructor,
+  ensuring that the value is popped in an exception-safe manner.
+ */
 class LuaDelayedPop{
 public:
   LuaDelayedPop(lua_State* L, int num_to_pop) :

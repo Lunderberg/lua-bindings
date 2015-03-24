@@ -11,13 +11,26 @@
 #include "LuaRead.hh"
 
 namespace Lua{
+  //! Hook to be called when the coroutine runs out of execution steps allowed.
+  /*! Sets the boolean variable ended_by_timeout, then calls lua_yield.
+    This allows LuaCoroutine::Resume to know that the function did not return normally.
+   */
   void yielding_hook(lua_State* L, lua_Debug* ar);
 
 
+  //! Holds a reference to a Lua coroutine.
   class LuaCoroutine{
   public:
+    //! Constructs the Lua routine, preparing it for the first resume.
     LuaCoroutine(lua_State* parent, const char* function);
 
+    //! Starts the coroutine until it either yields or returns.
+    /*! Starts the coroutine, passing in the arguments given.
+      The coroutine will continue until it yields or returns.
+      If SetMaxInstructions has been called with a non-zero value,
+        and the coroutine uses more that number of Lua instructions,
+        LuaCoroutine::Resume will throw LuaRuntimeTooLong.
+     */
     template<typename RetVal = void, typename... Params>
     RetVal Resume(Params&&... params){
       int top = lua_gettop(thread);
@@ -48,10 +61,20 @@ namespace Lua{
       return Lua::Read<RetVal>(thread, top - nresults);
     }
 
+    //! Returns true if the coroutine has run to completion.
     bool IsFinished(){ return finished; }
 
+    //! Set the maximum number of Lua instructions for each Resume.
+    /*! If the coroutine has neither returned nor yielded by that time,
+        a LuaRuntimeTooLong will be thrown by LuaCoroutine::Resume.
+     */
     void SetMaxInstructions(int instructions){
       max_instructions = instructions;
+    }
+
+    //! Returns the current maximum instructions.
+    int GetMaxInstructions(){
+      return max_instructions;
     }
 
   private:

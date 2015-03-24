@@ -147,9 +147,6 @@ TEST(LuaClasses, ReturnCppClass){
 
   auto shared_value = L.Call<std::shared_ptr<TestClass> >("return_TestClass");
   EXPECT_EQ(shared_value->GetX(), 17);
-
-  EXPECT_THROW(L.Call<std::weak_ptr<TestClass> >("return_TestClass"),
-               LuaIncorrectPointerType);
 }
 
 TEST(LuaClasses, ReturnCppClassByWeakPtr){

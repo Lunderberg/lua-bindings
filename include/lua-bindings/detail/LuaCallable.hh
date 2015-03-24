@@ -21,6 +21,9 @@ namespace Lua{
   */
   int call_cpp_function(lua_State* L);
 
+  //! Calls the destructor of the LuaCallable.
+  /*! As before, I need a C-style function pointer.
+   */
   int garbage_collect_cpp_function(lua_State* L);
 }
 

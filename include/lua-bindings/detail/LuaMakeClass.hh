@@ -18,6 +18,15 @@ int garbage_collect_arbitrary_object(lua_State* L);
 
 namespace Lua{
 
+  //! Templated function for deleting C++ objects owned by Lua.
+  /*! Unfortunately, "__gc" functions must be directly callable,
+      rather than being objects with a "__call" method attached.
+    Therefore, I cannot attach a LuaCallable as I would elsewhere.
+
+    This function is templated on the class to be deleted.
+    It is then attached as a lua_cclosure with this function,
+      and the pointer itself.
+   */
   template<typename T>
   void delete_from_void_pointer(void* storage){
     auto ptr = static_cast<VariablePointer<T>*>(storage);
@@ -42,6 +51,21 @@ namespace Lua{
 
   }
 
+  //! Utility class for exporting C++ classes into Lua.
+  /*!Returns a proxy object that can be used to make a class.
+    Usage:
+      Lua::LuaState L;
+      L.MakeClass<ClassName>("ClassName")
+        .AddConstructor<ParamType1, ParamType2, ...>("ConstructorName")
+        .AddMethod("Method1", &ClassName::Method1)
+        .AddMethod("Method2", &ClassName::Method2);
+
+      ClassName, the template parameter, is the class being wrapped.
+      "ClassName", the string parameter, is the name of the class, for debug messages.
+      <ParamType1, ParamType2, ...> are the parameter types passed to the constructor being registered.
+      "ConstructorName" is the name of the Lua function which exposes this contructor.
+      "Method1" is the name of the method as it is exposed to Lua.
+  */
   template<typename ClassType>
   class MakeClass {
   public:

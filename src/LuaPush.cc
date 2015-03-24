@@ -25,6 +25,10 @@ void Lua::PushValueDirect(lua_State*, LuaObject& obj){
   obj.MoveToTop();
 }
 
+void Lua::PushValueDirect(lua_State* L, LuaNil){
+  lua_pushnil(L);
+}
+
 void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   // Define a new userdata, storing the LuaCallable in it.
   void* userdata = lua_newuserdata(L, sizeof(callable));

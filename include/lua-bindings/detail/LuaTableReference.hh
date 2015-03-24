@@ -9,6 +9,7 @@
 #include "LuaObject.hh"
 
 namespace Lua{
+  //! Convenience class for reading/writing to a lua table.
   template<typename T>
   class LuaTableReference{
   public:

@@ -9,6 +9,7 @@
 #include "LuaExceptions.hh"
 
 namespace Lua{
+  //! Creates a new table on the stack.
   void NewTable(lua_State* L);
 
   template<typename T>
@@ -22,6 +23,7 @@ namespace Lua{
   template<typename T>
   class LuaTableReference;
 
+  //! Utility Class for holding a lua object that is currently on the stack.
   class LuaObject{
   public:
     LuaObject(lua_State* L, int stack_pos=-1);

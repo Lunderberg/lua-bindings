@@ -40,8 +40,13 @@ namespace Lua{
     }
 
   private:
+    //! The function being wrapped.
     std::function<RetVal(Params...)> func;
 
+    //! Helper function to extract indices for each parameter.
+    /*! I need to get an index for each parameter.
+      The template voodoo magic is explained in TemplateUtils.hh
+     */
     template<int... Indices, typename RetVal_func>
     static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
                                     lua_State* L){
@@ -54,6 +59,9 @@ namespace Lua{
     // g++ incorrectly flags lua_State* L as being unused when Params... is empty
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+    //! Separate helper function for void functions.
+    /*! I can't use the earlier template, because "void output = ..." is meaningless.
+     */
     template<int... Indices>
     static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
       func(Read<Params>(L, Indices+1)...);

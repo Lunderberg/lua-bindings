@@ -14,6 +14,7 @@
 #include <lua.hpp>
 
 #include "LuaExceptions.hh"
+#include "LuaNil.hh"
 #include "LuaObject.hh"
 #include "LuaPointerType.hh"
 #include "LuaRegistryNames.hh"
@@ -25,12 +26,17 @@ namespace Lua{
   template<typename T>
   class LuaTableReference;
 
+  //! Pushes values onto the LuaStack.
+  /*! Each of the PushValueDirect functions will push something immediately,
+      without further dispatch.
+   */
   void PushValueDirect(lua_State* L, lua_CFunction t);
   void PushValueDirect(lua_State* L, const char* string);
   void PushValueDirect(lua_State* L, std::string string);
   void PushValueDirect(lua_State* L, LuaObject& obj);
   void PushValueDirect(lua_State* L, LuaCallable* callable);
   void PushValueDirect(lua_State* L, bool b);
+  void PushValueDirect(lua_State* L, LuaNil);
 
   template<typename T>
   void PushValueDirect(lua_State*, LuaTableReference<T> ref){
@@ -191,14 +197,22 @@ namespace Lua{
     PushDefaultType<T>::Push(L, std::forward<T>(t));
   }
 
+  //! The mother method, which will push any object onto the lua stack, if possible.
+  /*! First, calls PushDirectIfPossible.
+    The auto -> decltype() construction makes PushValueDirect be preferred,
+      but only if it is a valid construction.
+    Otherwise, PushDefaultType<T>::Push is called.
+    This has two special cases, one for rvalue references, and one for lvalue references.
+   */
   template<typename T>
   void Push(lua_State* L, T&& t){
     PushDirectIfPossible(L, std::forward<T>(t), true);
   }
 
-  // Does nothing.  Needed for end of recursion of PushMany
+  //! Does nothing.  Needed for end of recursion of PushMany
   void PushMany(lua_State*);
 
+  //! Pushes each value onto the stack, in order.
   template<typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params){
     Push(L, std::forward<FirstParam>(first));

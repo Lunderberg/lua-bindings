@@ -133,6 +133,11 @@ namespace Lua{
       return obj.Cast<T>();
     }
 
+    //! Returns a LuaObject representing the object requested.
+    /*! Users of the library should avoid this function.
+      It places something onto the stack and does not remove it.
+      It might be necessary for some users, which is why it remains public.
+     */
     Lua::LuaObject GetGlobal(const char* name){
       lua_getglobal(L, name);
       return Lua::LuaObject(L, -1);
@@ -155,13 +160,40 @@ namespace Lua{
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
+    //! Creates and returns a new table
+    /*! Another of those functions that would be best avoided.
+      It places a table on the stack, which the user must later remove.
+     */
     Lua::LuaObject NewTable();
 
+    //! Defines a class in the LuaState.
+    /*! Returns a proxy object that can be used to make a class.
+      Usage:
+        Lua::LuaState L;
+        L.MakeClass<ClassName>("ClassName")
+          .AddConstructor<ParamType1, ParamType2, ...>("ConstructorName")
+          .AddMethod("Method1", &ClassName::Method1)
+          .AddMethod("Method2", &ClassName::Method2);
+
+        ClassName, the template parameter, is the class being wrapped.
+        "ClassName", the string parameter, is the name of the class, for debug messages.
+        <ParamType1, ParamType2, ...> are the parameter types passed to the constructor being registered.
+        "ConstructorName" is the name of the Lua function which exposes this contructor.
+        "Method1" is the name of the method as it is exposed to Lua.
+     */
     template<typename ClassType>
     Lua::MakeClass<ClassType> MakeClass(std::string name){
       return Lua::MakeClass<ClassType>(L, name);
     }
 
+    //! Returns a new coroutine calling the function given.
+    /*! Returns a new coroutine which can be resumed repeatedly.
+      Each time, LuaCoroutine::Resume<Output>(params...) accepts any parameters.
+      These are passed as arguments either to the function itself,
+        or as the return values of coroutine.yield.
+      The return value from LuaCoroutine::Resume are the values passed to coroutine.yield
+        or the final return value from the function, whichever occurs.
+     */
     LuaCoroutine NewCoroutine(const char* name){
       return LuaCoroutine(L, name);
     }
@@ -187,6 +219,11 @@ namespace Lua{
       return Lua::LuaObject(L);
     }
 
+    //! Calls a function from the stack.
+    /*! Assumes that the Lua stack has a function on top.
+      Pushes each argument onto the stack.
+      Returns the return type requested.
+     */
     template<typename RetVal=void, typename... Params>
     RetVal CallFromStack(Params&&... params){
       int top = lua_gettop(L) - 1; // -1 because the function is already on the stack.
