@@ -91,7 +91,6 @@ namespace Lua{
              >
     int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
       RetVal output = func(obj, Read<Params>(L, Indices+1)...);
-      std::cout << "Function returns with value of " << output << std::endl;
       int top = lua_gettop(L);
       Push(L, output);
       return lua_gettop(L) - top;
@@ -108,7 +107,6 @@ namespace Lua{
              typename std::enable_if<std::is_same<R, void>::value, int>::type = 0
              >
     int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
-      std::cout << "Called function returning void" << std::endl;
       func(obj, Read<Params>(L, Indices+1)...);
       return 0;
     }

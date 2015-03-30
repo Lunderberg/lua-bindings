@@ -19,10 +19,7 @@ namespace{
     ~TestClass() {
       destructor_called++;
     }
-    int GetX() const {
-      std::cout << "In GetX() with value of " << x << std::endl;
-      return x;
-    }
+    int GetX() const { return x; }
     void SetX(int x){ this->x = x; }
 
   private:
