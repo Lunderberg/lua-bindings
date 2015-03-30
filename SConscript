@@ -1,6 +1,6 @@
 # Usage:
 #   lua_bindings = env.SConscript('lua-binding/SConscript', 'env')
-#   env.Append(CPPPATH = ['lua-bindings/include'])
+#   env.Append(CPPPATH = ['lua-bindings/include', 'lua-bindings/lua-5.3.0/src'])
 #   env.Append(LIBS = [lua_bindings])
 
 

@@ -97,6 +97,12 @@ namespace Lua{
       return *this;
     }
 
+    template<typename RetVal, typename... Params>
+    MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...) const){
+      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
+      return *this;
+    }
+
     template<typename... Params>
     MakeClass& AddConstructor(std::string constructor_name = ""){
       if(constructor_name.size() == 0){

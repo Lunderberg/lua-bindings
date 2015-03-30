@@ -2,8 +2,10 @@
 #define _LUACALLABLE_MEMBERFUNCTION_H_
 
 #include <iostream>
+#include <functional>
 #include <memory>
 #include <string>
+#include <type_traits>
 
 #include <lua.hpp>
 
@@ -34,7 +36,8 @@ namespace Lua{
   template<typename ClassType, typename RetVal, typename... Params>
   class LuaCallable_MemberFunction<ClassType, RetVal(Params...)> : public LuaCallable {
   public:
-    LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...)) : func(func) { }
+    LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...)) : func(std::mem_fn(func)) { }
+    LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...) const ) : func(std::mem_fn(func)) { }
     virtual int call(lua_State* L){
       if(lua_gettop(L) != sizeof...(Params) + 1){
         throw LuaCppCallError("Incorrect number of arguments passed");
@@ -53,12 +56,12 @@ namespace Lua{
       case PointerType::shared_ptr:
         {
           return call_member_function_helper(build_indices<sizeof...(Params)>(),
-                                             L, *ptr->pointers.shared_ptr, func);
+                                             L, ptr->pointers.shared_ptr.get());
         }
       case PointerType::weak_ptr:
         {
           if(auto lock = ptr->pointers.weak_ptr.lock()){
-            return call_member_function_helper(build_indices<sizeof...(Params)>(), L, *lock, func);
+            return call_member_function_helper(build_indices<sizeof...(Params)>(), L, lock.get());
           } else {
             Push(L, LuaNil());
             return 1;
@@ -67,7 +70,7 @@ namespace Lua{
       case PointerType::c_ptr:
         {
           return call_member_function_helper(build_indices<sizeof...(Params)>(),
-                                             L, *ptr->pointers.c_ptr, func);
+                                             L, ptr->pointers.c_ptr);
         }
       default:
         std::cout << "Calling on unknown pointer type, should never happen" << std::endl;
@@ -77,13 +80,18 @@ namespace Lua{
 
   private:
     //! Holds the method pointer.
-    RetVal (ClassType::*func)(Params...);
+    std::function<RetVal(ClassType*, Params...)> func;
 
     //! As in LuaCallable_CppFunction, needing to extract indices.
-    template<int... Indices, typename RetVal_func>
-    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
-                                           RetVal_func (ClassType::*func)(Params...)){
-      RetVal output = (obj.*func)(Read<Params>(L, Indices+1)...);
+    /*! This function is used if RetVal is non-void.
+     */
+    template<int... Indices,
+             typename R = RetVal,
+             typename std::enable_if<!std::is_same<R, void>::value, int>::type = 0
+             >
+    int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
+      RetVal output = func(obj, Read<Params>(L, Indices+1)...);
+      std::cout << "Function returns with value of " << output << std::endl;
       int top = lua_gettop(L);
       Push(L, output);
       return lua_gettop(L) - top;
@@ -93,10 +101,15 @@ namespace Lua{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
     //! As in LuaCallable_CppFunction, need to have a special case for void.
-    template<int... Indices>
-    static int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType& obj,
-                                           void (ClassType::*func)(Params...)){
-      (obj.*func)(Read<Params>(L, Indices+1)...);
+    /*! This function is used if RetVal is void.
+     */
+    template<int... Indices,
+             typename R = RetVal,
+             typename std::enable_if<std::is_same<R, void>::value, int>::type = 0
+             >
+    int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
+      std::cout << "Called function returning void" << std::endl;
+      func(obj, Read<Params>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop
