@@ -68,35 +68,19 @@ namespace Lua{
 
     //! Load a file into Lua
     /*! Loads a file, then executes.
-      May raise LuaFileNotFound, LuaFileExecuteError, or LuaFileParseError.
     */
     template<typename RetVal=void, typename... Params>
     RetVal LoadFile(const char* filename, Params&&... params){
-      int load_result = luaL_loadfilex(L, filename, "t");
-      if(load_result){
-        auto error_message = Lua::Read<std::string>(L, -1);
-        if(load_result == LUA_ERRFILE){
-          throw LuaFileNotFound(filename);
-        } else {
-          throw LuaFileParseError(error_message);
-        }
-      }
-
+      PushCodeFile(L, filename);
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
     //! Load a string into Lua
     /*! Loads a string, then executes.
-      May raise LuaFileExecuteError, or LuaFileParseError.
     */
     template<typename RetVal=void, typename... Params>
     RetVal LoadString(const std::string& lua_code, Params&&... params){
-      int load_result = luaL_loadstring(L, lua_code.c_str());
-      if(load_result){
-        auto error_message = Lua::Read<std::string>(L, -1);
-        throw LuaFileParseError(error_message);
-      }
-
+      PushCodeString(L, lua_code);
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
@@ -186,7 +170,7 @@ namespace Lua{
       return Lua::MakeClass<ClassType>(L, name);
     }
 
-    //! Returns a new coroutine calling the function given.
+    //! Returns a new coroutine
     /*! Returns a new coroutine which can be resumed repeatedly.
       Each time, LuaCoroutine::Resume<Output>(params...) accepts any parameters.
       These are passed as arguments either to the function itself,
@@ -194,8 +178,8 @@ namespace Lua{
       The return value from LuaCoroutine::Resume are the values passed to coroutine.yield
         or the final return value from the function, whichever occurs.
      */
-    LuaCoroutine NewCoroutine(const char* name){
-      return LuaCoroutine(L, name);
+    LuaCoroutine NewCoroutine(){
+      return LuaCoroutine(L);
     }
 
   private:

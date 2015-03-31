@@ -208,7 +208,8 @@ The main advantage is that coroutines can be yielded, while a function call cann
     L.LoadSafeLibs();
     L.LoadString("function yields() print('First') coroutine.yield() print('Second') end");
 
-    auto coroutine = L.NewCoroutine("yields");
+    auto coroutine = L.NewCoroutine();
+    coroutine.LoadFunc("yields");
     coroutine.Resume(); // Prints 'First'
     coroutine.Resume(); // Prints 'Second'
 
@@ -218,7 +219,8 @@ This prevents user scripts from suspending the program if they infinite loop.
     Lua::LuaState L;
     L.LoadString("function infinite_loop() while true do end");
 
-    auto coroutine = L.NewCoroutine("infinite_loop");
+    auto coroutine = L.NewCoroutine();
+    coroutine.LoadFunc("infinite_loop");
     coroutine.SetMaxInstruction(10000);
     coroutine.Resume(); // throws a LuaRuntimeTooLong.
 
@@ -232,7 +234,8 @@ or has just yielded.
     L.LoadSafeLibs();
     L.LoadString("functions yields_return(x) y = coroutine.yield(x) return y end");
 
-    auto coroutine = L.NewCoroutine("yields_return");
+    auto coroutine = L.NewCoroutine();
+    coroutine.LoadFunc("yields_return");
     auto return1 = coroutine.Resume<int>(5);
     assert(!coroutine.IsFinished());
     auto return2 = coroutine.Resume<std::string>("hello");

@@ -12,16 +12,18 @@ TEST(LuaCoroutines, RunCoroutine){
                "  return c "
                "end");
 
-  auto thread = L.NewCoroutine("yielding_func");
+  auto thread = L.NewCoroutine();
+  thread.LoadFunc("yielding_func");
+
   auto res1 = thread.Resume<int>(5);
   EXPECT_EQ(res1, 5);
-  ASSERT_FALSE(thread.IsFinished());
+  ASSERT_TRUE(thread.IsRunning());
   auto res2 = thread.Resume<std::string>("hello");
   EXPECT_EQ(res2, "hello");
-  ASSERT_FALSE(thread.IsFinished());
+  ASSERT_TRUE(thread.IsRunning());
   auto res3 = thread.Resume<double>(42.5);
   EXPECT_EQ(res3, 42.5);
-  EXPECT_TRUE(thread.IsFinished());
+  EXPECT_FALSE(thread.IsRunning());
 }
 
 TEST(LuaCoroutines, MaxInstructions){
@@ -38,17 +40,45 @@ TEST(LuaCoroutines, MaxInstructions){
                "  end "
                "end");
 
-  auto thread = L.NewCoroutine("yielding_func");
+  auto thread = L.NewCoroutine();
   thread.SetMaxInstructions(100);
+  thread.LoadFunc("yielding_func");
 
   auto res1 = thread.Resume<int>(5);
   EXPECT_EQ(res1, 5);
-  ASSERT_FALSE(thread.IsFinished());
+  ASSERT_TRUE(thread.IsRunning());
 
   auto res2 = thread.Resume<std::string>("hello");
   EXPECT_EQ(res2, "hello");
-  ASSERT_FALSE(thread.IsFinished());
+  ASSERT_TRUE(thread.IsRunning());
 
   EXPECT_THROW(thread.Resume<double>(42.5), LuaRuntimeTooLong);
   EXPECT_EQ( L.CastGlobal<int>("i"), 25); //25 loops until the 100 instructions run out.
+}
+
+TEST(LuaCoroutines, RepeatedFunction){
+  Lua::LuaState L;
+
+  L.LoadLibs();
+
+  L.LoadString("function func() "
+               "  return 5 "
+               "end");
+
+  auto thread = L.NewCoroutine();
+  ASSERT_FALSE(thread.IsRunning());
+
+  thread.LoadFunc("func");
+  ASSERT_TRUE(thread.IsRunning());
+
+  auto res1 = thread.Resume<int>(5);
+  ASSERT_EQ(res1, 5);
+  ASSERT_FALSE(thread.IsRunning());
+
+  thread.LoadFunc("func");
+  ASSERT_TRUE(thread.IsRunning());
+
+  auto res2 = thread.Resume<int>(5);
+  ASSERT_EQ(res2, 5);
+  ASSERT_FALSE(thread.IsRunning());
 }

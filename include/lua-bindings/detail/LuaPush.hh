@@ -218,6 +218,9 @@ namespace Lua{
     Push(L, std::forward<FirstParam>(first));
     PushMany(L, std::forward<Params>(params)...);
   }
+
+  void PushCodeFile(lua_State* L, const char* filename);
+  void PushCodeString(lua_State* L, const std::string& lua_code);
 }
 
 #endif /* _LUAPUSH_H_ */

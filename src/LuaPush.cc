@@ -2,6 +2,7 @@
 
 #include "lua-bindings/detail/LuaCallable.hh"
 #include "lua-bindings/detail/LuaObject.hh"
+#include "lua-bindings/detail/LuaRead.hh"
 #include "lua-bindings/detail/LuaRegistryNames.hh"
 #include "lua-bindings/detail/LuaTableReference.hh"
 
@@ -46,3 +47,23 @@ void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
 }
 
 void Lua::PushMany(lua_State*){ }
+
+void Lua::PushCodeFile(lua_State* L, const char* filename){
+  int load_result = luaL_loadfilex(L, filename, "t");
+  if(load_result){
+    auto error_message = Lua::Read<std::string>(L, -1);
+    if(load_result == LUA_ERRFILE){
+      throw LuaFileNotFound(filename);
+    } else {
+      throw LuaFileParseError(error_message);
+    }
+  }
+}
+
+void Lua::PushCodeString(lua_State* L, const std::string& lua_code){
+  int load_result = luaL_loadstring(L, lua_code.c_str());
+  if(load_result){
+    auto error_message = Lua::Read<std::string>(L, -1);
+    throw LuaFileParseError(error_message);
+  }
+}

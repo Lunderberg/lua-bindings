@@ -22,7 +22,20 @@ namespace Lua{
   class LuaCoroutine{
   public:
     //! Constructs the Lua routine, preparing it for the first resume.
-    LuaCoroutine(lua_State* parent, const char* function);
+    LuaCoroutine(lua_State* parent);
+
+    //! Starts a function call in the coroutine.
+    void LoadFunc(const char* name);
+
+    //! Load a file into Lua
+    /*! Loads a file, then executes inside the coroutine.
+    */
+    void LoadFile(const char* filename);
+
+    //! Load a string into Lua
+    /*! Loads a string, then executes inside the coroutine.
+    */
+    void LoadString(const std::string& lua_code);
 
     //! Starts the coroutine until it either yields or returns.
     /*! Starts the coroutine, passing in the arguments given.
@@ -33,6 +46,10 @@ namespace Lua{
      */
     template<typename RetVal = void, typename... Params>
     RetVal Resume(Params&&... params){
+      if(!running){
+        throw LuaCoroutineNotRunning("Cannot resume a coroutine that is not running");
+      }
+
       int top = lua_gettop(thread);
       Lua::PushMany(thread, std::forward<Params>(params)...);
 
@@ -51,9 +68,9 @@ namespace Lua{
       }
 
       if(result == LUA_OK){
-        finished = true;
+        running = false;
       } else if (result == LUA_YIELD){
-        finished = false;
+        running = true;
       } else {
         auto error_message = Read<std::string>(thread, -1);
         throw LuaCoroutineExecuteError(error_message);
@@ -61,8 +78,8 @@ namespace Lua{
       return Lua::Read<RetVal>(thread, top - nresults);
     }
 
-    //! Returns true if the coroutine has run to completion.
-    bool IsFinished(){ return finished; }
+    //! Returns whether the coroutine is currently running.
+    bool IsRunning(){ return running; }
 
     //! Set the maximum number of Lua instructions for each Resume.
     /*! If the coroutine has neither returned nor yielded by that time,
@@ -78,7 +95,7 @@ namespace Lua{
     }
 
   private:
-    bool finished;
+    bool running;
     lua_State* thread;
     int max_instructions;
 
