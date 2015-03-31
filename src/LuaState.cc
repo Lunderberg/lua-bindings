@@ -44,6 +44,7 @@ void Lua::LuaState::LoadSafeLibs(){
       "coroutine.running",
       "coroutine.status",
       "coroutine.wrap",
+      "coroutine.yield",
 
       "string.byte",
       "string.char",
