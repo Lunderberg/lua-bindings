@@ -298,9 +298,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <a class="code" href="namespaceLua.html#a4306d69736debd5ab7e27a5fafe3f661">Push</a>(L, std::forward&lt;FirstParam&gt;(first));</div>
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <a class="code" href="namespaceLua.html#a2ab60f508feef8e719e5d2496bb8277f">PushMany</a>(L, std::forward&lt;Params&gt;(params)...);</div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;  }</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;}</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* _LUAPUSH_H_ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="namespaceLua.html#afa833e13dd56aa5339cae3bb63bb5578">PushCodeFile</a>(lua_State* L, <span class="keyword">const</span> <span class="keywordtype">char</span>* filename);</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="namespaceLua.html#ad05e2e416c8aefb89f27a0a6b5ebf32e">PushCodeString</a>(lua_State* L, <span class="keyword">const</span> std::string&amp; lua_code);</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;}</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* _LUAPUSH_H_ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="classLua_1_1LuaCallable_html"><div class="ttname"><a href="classLua_1_1LuaCallable.html">Lua::LuaCallable</a></div><div class="ttdoc">Abstract base class for callable functions. </div><div class="ttdef"><b>Definition:</b> LuaCallable.hh:10</div></div>
 <div class="ttc" id="namespaceLua_html_a4c691d087936a19d8a9afe2aa987e435a950a3b9951bd3bd5dd8d0517ef08c2a7"><div class="ttname"><a href="namespaceLua.html#a4c691d087936a19d8a9afe2aa987e435a950a3b9951bd3bd5dd8d0517ef08c2a7">Lua::PointerType::c_ptr</a></div></div>
 <div class="ttc" id="structLua_1_1PushDefaultType_html_af7670f95928e8b52116cebd338a9319d"><div class="ttname"><a href="structLua_1_1PushDefaultType.html#af7670f95928e8b52116cebd338a9319d">Lua::PushDefaultType::Push</a></div><div class="ttdeci">static void Push(lua_State *L, T &amp;&amp;t)</div><div class="ttdef"><b>Definition:</b> LuaPush.hh:174</div></div>
@@ -321,11 +324,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="namespaceLua_html_a020c457490b97dd3d3edfa630492d971"><div class="ttname"><a href="namespaceLua.html#a020c457490b97dd3d3edfa630492d971">Lua::NewTable</a></div><div class="ttdeci">void NewTable(lua_State *L)</div><div class="ttdoc">Creates a new table on the stack. </div><div class="ttdef"><b>Definition:</b> LuaObject.cc:33</div></div>
 <div class="ttc" id="namespaceLua_html_a4c691d087936a19d8a9afe2aa987e435a441909f3f6bf06f5dd71ea1800bbc2e9"><div class="ttname"><a href="namespaceLua.html#a4c691d087936a19d8a9afe2aa987e435a441909f3f6bf06f5dd71ea1800bbc2e9">Lua::PointerType::shared_ptr</a></div></div>
 <div class="ttc" id="LuaExceptions_8hh_html"><div class="ttname"><a href="LuaExceptions_8hh.html">LuaExceptions.hh</a></div></div>
+<div class="ttc" id="namespaceLua_html_afa833e13dd56aa5339cae3bb63bb5578"><div class="ttname"><a href="namespaceLua.html#afa833e13dd56aa5339cae3bb63bb5578">Lua::PushCodeFile</a></div><div class="ttdeci">void PushCodeFile(lua_State *L, const char *filename)</div><div class="ttdef"><b>Definition:</b> LuaPush.cc:51</div></div>
 <div class="ttc" id="TemplateUtils_8hh_html"><div class="ttname"><a href="TemplateUtils_8hh.html">TemplateUtils.hh</a></div></div>
 <div class="ttc" id="classLua_1_1LuaCallable__CppFunction_html"><div class="ttname"><a href="classLua_1_1LuaCallable__CppFunction.html">Lua::LuaCallable_CppFunction</a></div><div class="ttdef"><b>Definition:</b> LuaCallable_CppFunction.hh:14</div></div>
 <div class="ttc" id="structLua_1_1VariablePointer_html_afbabbf8c68441161c1733e5faef66706"><div class="ttname"><a href="structLua_1_1VariablePointer.html#afbabbf8c68441161c1733e5faef66706">Lua::VariablePointer::type</a></div><div class="ttdeci">PointerType type</div><div class="ttdef"><b>Definition:</b> LuaPointerType.hh:15</div></div>
 <div class="ttc" id="namespaceLua_html_a83d14141005951856c84bf13f747db4d"><div class="ttname"><a href="namespaceLua.html#a83d14141005951856c84bf13f747db4d">Lua::PushDirectIfPossible</a></div><div class="ttdeci">auto PushDirectIfPossible(lua_State *L, T t, bool) -&gt; decltype(PushValueDirect(L, t))</div><div class="ttdef"><b>Definition:</b> LuaPush.hh:190</div></div>
-<div class="ttc" id="namespaceLua_html_aa699150b313dfd08b1b260a35dbe7496"><div class="ttname"><a href="namespaceLua.html#aa699150b313dfd08b1b260a35dbe7496">Lua::PushValueDirect</a></div><div class="ttdeci">void PushValueDirect(lua_State *L, lua_CFunction t)</div><div class="ttdoc">Pushes values onto the LuaStack. </div><div class="ttdef"><b>Definition:</b> LuaPush.cc:8</div></div>
+<div class="ttc" id="namespaceLua_html_ad05e2e416c8aefb89f27a0a6b5ebf32e"><div class="ttname"><a href="namespaceLua.html#ad05e2e416c8aefb89f27a0a6b5ebf32e">Lua::PushCodeString</a></div><div class="ttdeci">void PushCodeString(lua_State *L, const std::string &amp;lua_code)</div><div class="ttdef"><b>Definition:</b> LuaPush.cc:63</div></div>
+<div class="ttc" id="namespaceLua_html_aa699150b313dfd08b1b260a35dbe7496"><div class="ttname"><a href="namespaceLua.html#aa699150b313dfd08b1b260a35dbe7496">Lua::PushValueDirect</a></div><div class="ttdeci">void PushValueDirect(lua_State *L, lua_CFunction t)</div><div class="ttdoc">Pushes values onto the LuaStack. </div><div class="ttdef"><b>Definition:</b> LuaPush.cc:9</div></div>
 <div class="ttc" id="namespaceLua_html_a4306d69736debd5ab7e27a5fafe3f661"><div class="ttname"><a href="namespaceLua.html#a4306d69736debd5ab7e27a5fafe3f661">Lua::Push</a></div><div class="ttdeci">void Push(lua_State *L, T &amp;&amp;t)</div><div class="ttdoc">The mother method, which will push any object onto the lua stack, if possible. </div><div class="ttdef"><b>Definition:</b> LuaPush.hh:208</div></div>
 <div class="ttc" id="lapi_8cc_html_a328625a03fbb5548f27b1af10f109f6a"><div class="ttname"><a href="lapi_8cc.html#a328625a03fbb5548f27b1af10f109f6a">lua_pushnumber</a></div><div class="ttdeci">LUA_API void lua_pushnumber(lua_State *L, lua_Number n)</div><div class="ttdef"><b>Definition:</b> lapi.cc:456</div></div>
 <div class="ttc" id="classLua_1_1LuaObject_html"><div class="ttname"><a href="classLua_1_1LuaObject.html">Lua::LuaObject</a></div><div class="ttdoc">Utility Class for holding a lua object that is currently on the stack. </div><div class="ttdef"><b>Definition:</b> LuaObject.hh:27</div></div>
@@ -334,7 +339,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:00 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:03 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

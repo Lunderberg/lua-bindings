@@ -33,6 +33,8 @@ var searchData=
   ['progname',['PROGNAME',['../luac_8cc.html#a8c9afb758de9a0355c93fc926b8ce6b1',1,'luac.cc']]],
   ['protect',['Protect',['../lvm_8cc.html#ae2228ab29e99d983653ab7b51e4b1f9c',1,'lvm.cc']]],
   ['push',['Push',['../structLua_1_1PushDefaultType.html#af7670f95928e8b52116cebd338a9319d',1,'Lua::PushDefaultType::Push()'],['../structLua_1_1PushDefaultType_3_01T_01_6_01_4.html#afd289f7785dab333a60c74245e81d471',1,'Lua::PushDefaultType&lt; T &amp; &gt;::Push()'],['../classLua_1_1LuaState.html#a81b35c351edfda938f33f3fa2717527f',1,'Lua::LuaState::Push()'],['../namespaceLua.html#a4306d69736debd5ab7e27a5fafe3f661',1,'Lua::Push()']]],
+  ['pushcodefile',['PushCodeFile',['../namespaceLua.html#afa833e13dd56aa5339cae3bb63bb5578',1,'Lua']]],
+  ['pushcodestring',['PushCodeString',['../namespaceLua.html#ad05e2e416c8aefb89f27a0a6b5ebf32e',1,'Lua']]],
   ['pushdefaulttype',['PushDefaultType',['../structLua_1_1PushDefaultType.html',1,'Lua']]],
   ['pushdefaulttype_3c_20t_20_26_20_3e',['PushDefaultType&lt; T &amp; &gt;',['../structLua_1_1PushDefaultType_3_01T_01_6_01_4.html',1,'Lua']]],
   ['pushdirectifpossible',['PushDirectIfPossible',['../namespaceLua.html#a83d14141005951856c84bf13f747db4d',1,'Lua::PushDirectIfPossible(lua_State *L, T t, bool) -&gt; decltype(PushValueDirect(L, t))'],['../namespaceLua.html#a0421d0a814cc0dea0e20763f01128077',1,'Lua::PushDirectIfPossible(lua_State *L, T &amp;&amp;t, int)']]],

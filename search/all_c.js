@@ -8,7 +8,7 @@ var searchData=
   ['nb',['NB',['../lstrlib_8cc.html#a58e95dc1eb9d6ce16f515e77beeadd58',1,'lstrlib.cc']]],
   ['nbits',['NBITS',['../lvm_8cc.html#a671db1197d35e1db5d5bf18f1af5ed3f',1,'lvm.cc']]],
   ['new_5flocalvarliteral',['new_localvarliteral',['../lparser_8cc.html#a031fd03dec54eb67a3cfac513b8575bb',1,'lparser.cc']]],
-  ['newcoroutine',['NewCoroutine',['../classLua_1_1LuaState.html#a77dadc5ccc0e0f5d91c574e7b4c9fc13',1,'Lua::LuaState']]],
+  ['newcoroutine',['NewCoroutine',['../classLua_1_1LuaState.html#aa9bfa9d6f5142fa08f52dad8b8e57731',1,'Lua::LuaState']]],
   ['newtable',['NewTable',['../classLua_1_1LuaState.html#a185885d3d1764ca747d7dfb267ab2e6b',1,'Lua::LuaState::NewTable()'],['../namespaceLua.html#a020c457490b97dd3d3edfa630492d971',1,'Lua::NewTable()']]],
   ['next',['next',['../llex_8cc.html#a8ab976102fb046f9974c53caaf5a1995',1,'llex.cc']]],
   ['next_5fci',['next_ci',['../ldo_8cc.html#a6d23415e0632f518f78ab3e4bf2ea7dc',1,'ldo.cc']]],

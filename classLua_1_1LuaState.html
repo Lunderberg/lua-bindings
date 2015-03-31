@@ -161,9 +161,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9d3741e051c93ba1d2608139ffc80061"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1MakeClass.html">Lua::MakeClass</a>&lt; ClassType &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaState.html#a9d3741e051c93ba1d2608139ffc80061">MakeClass</a> (std::string name)</td></tr>
 <tr class="memdesc:a9d3741e051c93ba1d2608139ffc80061"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines a class in the <a class="el" href="classLua_1_1LuaState.html">LuaState</a>.  <a href="#a9d3741e051c93ba1d2608139ffc80061">More...</a><br/></td></tr>
 <tr class="separator:a9d3741e051c93ba1d2608139ffc80061"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77dadc5ccc0e0f5d91c574e7b4c9fc13"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1LuaCoroutine.html">LuaCoroutine</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaState.html#a77dadc5ccc0e0f5d91c574e7b4c9fc13">NewCoroutine</a> (const char *name)</td></tr>
-<tr class="memdesc:a77dadc5ccc0e0f5d91c574e7b4c9fc13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a new coroutine calling the function given.  <a href="#a77dadc5ccc0e0f5d91c574e7b4c9fc13">More...</a><br/></td></tr>
-<tr class="separator:a77dadc5ccc0e0f5d91c574e7b4c9fc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9bfa9d6f5142fa08f52dad8b8e57731"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1LuaCoroutine.html">LuaCoroutine</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaState.html#aa9bfa9d6f5142fa08f52dad8b8e57731">NewCoroutine</a> ()</td></tr>
+<tr class="memdesc:aa9bfa9d6f5142fa08f52dad8b8e57731"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a new coroutine.  <a href="#aa9bfa9d6f5142fa08f52dad8b8e57731">More...</a><br/></td></tr>
+<tr class="separator:aa9bfa9d6f5142fa08f52dad8b8e57731"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -498,7 +498,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
 </div><div class="memdoc">
 
 <p>Load a file into <a class="el" href="namespaceLua.html">Lua</a>. </p>
-<p>Loads a file, then executes. May raise LuaFileNotFound, LuaFileExecuteError, or LuaFileParseError. </p>
+<p>Loads a file, then executes. </p>
 
 </div>
 </div>
@@ -572,7 +572,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
 </div><div class="memdoc">
 
 <p>Load a string into <a class="el" href="namespaceLua.html">Lua</a>. </p>
-<p>Loads a string, then executes. May raise LuaFileExecuteError, or LuaFileParseError. </p>
+<p>Loads a string, then executes. </p>
 
 </div>
 </div>
@@ -606,7 +606,7 @@ template&lt;typename ClassType &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a77dadc5ccc0e0f5d91c574e7b4c9fc13"></a>
+<a class="anchor" id="aa9bfa9d6f5142fa08f52dad8b8e57731"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -616,8 +616,7 @@ template&lt;typename ClassType &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classLua_1_1LuaCoroutine.html">LuaCoroutine</a> Lua::LuaState::NewCoroutine </td>
           <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>name</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -628,7 +627,7 @@ template&lt;typename ClassType &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Returns a new coroutine calling the function given. </p>
+<p>Returns a new coroutine. </p>
 <p>Returns a new coroutine which can be resumed repeatedly. Each time, <a class="el" href="classLua_1_1LuaCoroutine.html#a852821dd9db3a5a60883f41006aad805" title="Starts the coroutine until it either yields or returns. ">LuaCoroutine::Resume&lt;Output&gt;</a>(params...) accepts any parameters. These are passed as arguments either to the function itself, or as the return values of coroutine.yield. The return value from <a class="el" href="classLua_1_1LuaCoroutine.html#a852821dd9db3a5a60883f41006aad805" title="Starts the coroutine until it either yields or returns. ">LuaCoroutine::Resume</a> are the values passed to coroutine.yield or the final return value from the function, whichever occurs. </p>
 
 </div>
@@ -878,7 +877,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:01 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:04 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

@@ -218,14 +218,16 @@ std::map&lt;std::string, int&gt; output =
 L.LoadSafeLibs();
 L.LoadString("function yields() print('First') coroutine.yield() print('Second') end");
 
-auto coroutine = L.NewCoroutine("yields");
+auto coroutine = L.NewCoroutine();
+coroutine.LoadFunc("yields");
 coroutine.Resume(); // Prints 'First'
 coroutine.Resume(); // Prints 'Second'
 </pre><p>In addition, coroutines can have limits placed on the number of <a class="el" href="namespaceLua.html">Lua</a> instructions that can be run. This prevents user scripts from suspending the program if they infinite loop. </p>
 <pre class="fragment">Lua::LuaState L;
 L.LoadString("function infinite_loop() while true do end");
 
-auto coroutine = L.NewCoroutine("infinite_loop");
+auto coroutine = L.NewCoroutine();
+coroutine.LoadFunc("infinite_loop");
 coroutine.SetMaxInstruction(10000);
 coroutine.Resume(); // throws a LuaRuntimeTooLong.
 </pre><p>Any arguments passed to <code>LuaCoroutine::Resume()</code> are given as the return values of <code>coroutine.yield()</code>. Similarly, any returns requested from <code>LuaCoroutine::Resume()</code> will give the value passed into <code>coroutine.yield()</code>, or the value of the <code>return</code> statement if the function finishes. The <code>IsFinished()</code> method can be used to determine whether a coroutine is completed, or has just yielded. </p>
@@ -233,14 +235,15 @@ coroutine.Resume(); // throws a LuaRuntimeTooLong.
 L.LoadSafeLibs();
 L.LoadString("functions yields_return(x) y = coroutine.yield(x) return y end");
 
-auto coroutine = L.NewCoroutine("yields_return");
+auto coroutine = L.NewCoroutine();
+coroutine.LoadFunc("yields_return");
 auto return1 = coroutine.Resume&lt;int&gt;(5);
 assert(!coroutine.IsFinished());
 auto return2 = coroutine.Resume&lt;std::string&gt;("hello");
 assert(coroutine.IsFinished()); </pre> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:01 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:04 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

@@ -110,6 +110,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab98b54e9154ee1ac249ac27948c9c419"><td class="memTemplParams" colspan="2">template&lt;typename RetVal , typename... Params&gt; </td></tr>
 <tr class="memitem:ab98b54e9154ee1ac249ac27948c9c419"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1MakeClass.html">MakeClass</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classLua_1_1MakeClass.html#ab98b54e9154ee1ac249ac27948c9c419">AddMethod</a> (std::string method_name, RetVal(ClassType::*func)(Params...))</td></tr>
 <tr class="separator:ab98b54e9154ee1ac249ac27948c9c419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30aafef996bcc71a70606ec49f7b06e8"><td class="memTemplParams" colspan="2">template&lt;typename RetVal , typename... Params&gt; </td></tr>
+<tr class="memitem:a30aafef996bcc71a70606ec49f7b06e8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1MakeClass.html">MakeClass</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classLua_1_1MakeClass.html#a30aafef996bcc71a70606ec49f7b06e8">AddMethod</a> (std::string method_name, RetVal(ClassType::*func)(Params...) const)</td></tr>
+<tr class="separator:a30aafef996bcc71a70606ec49f7b06e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab408815931c80395f62f58e0dbf7e8e3"><td class="memTemplParams" colspan="2">template&lt;typename... Params&gt; </td></tr>
 <tr class="memitem:ab408815931c80395f62f58e0dbf7e8e3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classLua_1_1MakeClass.html">MakeClass</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classLua_1_1MakeClass.html#ab408815931c80395f62f58e0dbf7e8e3">AddConstructor</a> (std::string constructor_name=&quot;&quot;)</td></tr>
 <tr class="separator:ab408815931c80395f62f58e0dbf7e8e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -261,6 +264,44 @@ template&lt;typename RetVal , typename... Params&gt; </div>
 
 </div>
 </div>
+<a class="anchor" id="a30aafef996bcc71a70606ec49f7b06e8"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ClassType&gt; </div>
+<div class="memtemplate">
+template&lt;typename RetVal , typename... Params&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classLua_1_1MakeClass.html">MakeClass</a>&amp; <a class="el" href="classLua_1_1MakeClass.html">Lua::MakeClass</a>&lt; ClassType &gt;::AddMethod </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>method_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">RetVal(ClassType::*)(Params...) const&#160;</td>
+          <td class="paramname"><em>func</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a class="anchor" id="a257bf3cca9a8f92cb1613b38ee4d0ada"></a>
 <div class="memitem">
@@ -356,7 +397,7 @@ template&lt;typename ClassType&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:01 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:04 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

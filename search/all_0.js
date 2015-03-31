@@ -2,7 +2,7 @@ var searchData=
 [
   ['addbuff',['addbuff',['../lstate_8cc.html#ab61c5946e20eeaeb9925bbd7fbf42e97',1,'lstate.cc']]],
   ['addconstructor',['AddConstructor',['../classLua_1_1MakeClass.html#ab408815931c80395f62f58e0dbf7e8e3',1,'Lua::MakeClass']]],
-  ['addmethod',['AddMethod',['../classLua_1_1MakeClass.html#ab98b54e9154ee1ac249ac27948c9c419',1,'Lua::MakeClass']]],
+  ['addmethod',['AddMethod',['../classLua_1_1MakeClass.html#ab98b54e9154ee1ac249ac27948c9c419',1,'Lua::MakeClass::AddMethod(std::string method_name, RetVal(ClassType::*func)(Params...))'],['../classLua_1_1MakeClass.html#a30aafef996bcc71a70606ec49f7b06e8',1,'Lua::MakeClass::AddMethod(std::string method_name, RetVal(ClassType::*func)(Params...) const)']]],
   ['addstr',['addstr',['../lobject_8cc.html#a0cbd5d41f14d898a5bacbe8935b01d0c',1,'lobject.cc']]],
   ['alwaystrue',['AlwaysTrue',['../namespacetesting_1_1internal.html#a922c9da63cd4bf94fc473b9ecac76414',1,'testing::internal']]],
   ['api_5fcheckstackindex',['api_checkstackindex',['../lapi_8cc.html#a804ef280e95d5ec6ce85b1adbf9489af',1,'lapi.cc']]],

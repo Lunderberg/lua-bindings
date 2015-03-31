@@ -262,6 +262,10 @@ T &gt;::value &gt;::type&#160;</td><td class="memTemplItemRight" valign="bottom"
 <tr class="memitem:aac893de1021f882ac101602f10206929"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceLua.html#aac893de1021f882ac101602f10206929">PushMany</a> (lua_State *)</td></tr>
 <tr class="memdesc:aac893de1021f882ac101602f10206929"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does nothing. Needed for end of recursion of PushMany.  <a href="#aac893de1021f882ac101602f10206929">More...</a><br/></td></tr>
 <tr class="separator:aac893de1021f882ac101602f10206929"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa833e13dd56aa5339cae3bb63bb5578"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceLua.html#afa833e13dd56aa5339cae3bb63bb5578">PushCodeFile</a> (lua_State *L, const char *filename)</td></tr>
+<tr class="separator:afa833e13dd56aa5339cae3bb63bb5578"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad05e2e416c8aefb89f27a0a6b5ebf32e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceLua.html#ad05e2e416c8aefb89f27a0a6b5ebf32e">PushCodeString</a> (lua_State *L, const std::string &amp;lua_code)</td></tr>
+<tr class="separator:ad05e2e416c8aefb89f27a0a6b5ebf32e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a455521c0184f98bbf2baf95bf131ae9d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a455521c0184f98bbf2baf95bf131ae9d"><td class="memTemplItemLeft" align="right" valign="top">std::enable_if<br class="typebreak"/>
 &lt; std::is_arithmetic&lt; T &gt;<br class="typebreak"/>
@@ -464,6 +468,58 @@ template&lt;typename T &gt; </div>
 
 <p>The mother method, which will push any object onto the lua stack, if possible. </p>
 <p>First, calls PushDirectIfPossible. The auto -&gt; decltype() construction makes PushValueDirect be preferred, but only if it is a valid construction. Otherwise, <a class="el" href="structLua_1_1PushDefaultType.html#af7670f95928e8b52116cebd338a9319d">PushDefaultType&lt;T&gt;::Push</a> is called. This has two special cases, one for rvalue references, and one for lvalue references. </p>
+
+</div>
+</div>
+<a class="anchor" id="afa833e13dd56aa5339cae3bb63bb5578"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Lua::PushCodeFile </td>
+          <td>(</td>
+          <td class="paramtype">lua_State *&#160;</td>
+          <td class="paramname"><em>L</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>filename</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ad05e2e416c8aefb89f27a0a6b5ebf32e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Lua::PushCodeString </td>
+          <td>(</td>
+          <td class="paramtype">lua_State *&#160;</td>
+          <td class="paramname"><em>L</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>lua_code</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -1394,7 +1450,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:01 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:04 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

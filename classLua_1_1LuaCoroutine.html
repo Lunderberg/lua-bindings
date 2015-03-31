@@ -105,16 +105,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae3a725af88d6c03d6f2ffc9216873e20"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#ae3a725af88d6c03d6f2ffc9216873e20">LuaCoroutine</a> (lua_State *parent, const char *function)</td></tr>
-<tr class="memdesc:ae3a725af88d6c03d6f2ffc9216873e20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs the <a class="el" href="namespaceLua.html">Lua</a> routine, preparing it for the first resume.  <a href="#ae3a725af88d6c03d6f2ffc9216873e20">More...</a><br/></td></tr>
-<tr class="separator:ae3a725af88d6c03d6f2ffc9216873e20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47393278992ebc6f14eb862ad0a9843a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a47393278992ebc6f14eb862ad0a9843a">LuaCoroutine</a> (lua_State *parent)</td></tr>
+<tr class="memdesc:a47393278992ebc6f14eb862ad0a9843a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs the <a class="el" href="namespaceLua.html">Lua</a> routine, preparing it for the first resume.  <a href="#a47393278992ebc6f14eb862ad0a9843a">More...</a><br/></td></tr>
+<tr class="separator:a47393278992ebc6f14eb862ad0a9843a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a954d91aed88596d134c78ba83929a576"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a954d91aed88596d134c78ba83929a576">LoadFunc</a> (const char *name)</td></tr>
+<tr class="memdesc:a954d91aed88596d134c78ba83929a576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a function call in the coroutine.  <a href="#a954d91aed88596d134c78ba83929a576">More...</a><br/></td></tr>
+<tr class="separator:a954d91aed88596d134c78ba83929a576"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a232917f64813d04b6bb2016a53b7ebcc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a232917f64813d04b6bb2016a53b7ebcc">LoadFile</a> (const char *filename)</td></tr>
+<tr class="memdesc:a232917f64813d04b6bb2016a53b7ebcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a file into <a class="el" href="namespaceLua.html">Lua</a>.  <a href="#a232917f64813d04b6bb2016a53b7ebcc">More...</a><br/></td></tr>
+<tr class="separator:a232917f64813d04b6bb2016a53b7ebcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adacc2a59164df092ac953c0aded9630c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#adacc2a59164df092ac953c0aded9630c">LoadString</a> (const std::string &amp;lua_code)</td></tr>
+<tr class="memdesc:adacc2a59164df092ac953c0aded9630c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a string into <a class="el" href="namespaceLua.html">Lua</a>.  <a href="#adacc2a59164df092ac953c0aded9630c">More...</a><br/></td></tr>
+<tr class="separator:adacc2a59164df092ac953c0aded9630c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a852821dd9db3a5a60883f41006aad805"><td class="memTemplParams" colspan="2">template&lt;typename RetVal  = void, typename... Params&gt; </td></tr>
 <tr class="memitem:a852821dd9db3a5a60883f41006aad805"><td class="memTemplItemLeft" align="right" valign="top">RetVal&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a852821dd9db3a5a60883f41006aad805">Resume</a> (Params &amp;&amp;...params)</td></tr>
 <tr class="memdesc:a852821dd9db3a5a60883f41006aad805"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the coroutine until it either yields or returns.  <a href="#a852821dd9db3a5a60883f41006aad805">More...</a><br/></td></tr>
 <tr class="separator:a852821dd9db3a5a60883f41006aad805"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35c17c04bd4db5d6fa8d041ad50f1e3c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a35c17c04bd4db5d6fa8d041ad50f1e3c">IsFinished</a> ()</td></tr>
-<tr class="memdesc:a35c17c04bd4db5d6fa8d041ad50f1e3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the coroutine has run to completion.  <a href="#a35c17c04bd4db5d6fa8d041ad50f1e3c">More...</a><br/></td></tr>
-<tr class="separator:a35c17c04bd4db5d6fa8d041ad50f1e3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e19548961bb3851bdb36ce239b8720f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a9e19548961bb3851bdb36ce239b8720f">IsRunning</a> ()</td></tr>
+<tr class="memdesc:a9e19548961bb3851bdb36ce239b8720f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns whether the coroutine is currently running.  <a href="#a9e19548961bb3851bdb36ce239b8720f">More...</a><br/></td></tr>
+<tr class="separator:a9e19548961bb3851bdb36ce239b8720f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2d8362ba0fc62e0d8f96f2b28512566"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#ae2d8362ba0fc62e0d8f96f2b28512566">SetMaxInstructions</a> (int instructions)</td></tr>
 <tr class="memdesc:ae2d8362ba0fc62e0d8f96f2b28512566"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the maximum number of <a class="el" href="namespaceLua.html">Lua</a> instructions for each Resume.  <a href="#ae2d8362ba0fc62e0d8f96f2b28512566">More...</a><br/></td></tr>
 <tr class="separator:ae2d8362ba0fc62e0d8f96f2b28512566"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -124,8 +133,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:ae87b396b59d44fbf8b3ba1d0b4e6207c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#ae87b396b59d44fbf8b3ba1d0b4e6207c">finished</a></td></tr>
-<tr class="separator:ae87b396b59d44fbf8b3ba1d0b4e6207c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac03e9afa3a8355d2a096840d9d3ab0a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#aac03e9afa3a8355d2a096840d9d3ab0a">running</a></td></tr>
+<tr class="separator:aac03e9afa3a8355d2a096840d9d3ab0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a739c4eca4e8a0e35a89805593f53b7d9"><td class="memItemLeft" align="right" valign="top">lua_State *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a739c4eca4e8a0e35a89805593f53b7d9">thread</a></td></tr>
 <tr class="separator:a739c4eca4e8a0e35a89805593f53b7d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1455694299c3a0fbff2ab0e74a0ec7b1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLua_1_1LuaCoroutine.html#a1455694299c3a0fbff2ab0e74a0ec7b1">max_instructions</a></td></tr>
@@ -145,7 +154,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Holds a reference to a <a class="el" href="namespaceLua.html">Lua</a> coroutine. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ae3a725af88d6c03d6f2ffc9216873e20"></a>
+<a class="anchor" id="a47393278992ebc6f14eb862ad0a9843a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -153,18 +162,8 @@ Friends</h2></td></tr>
           <td class="memname">Lua::LuaCoroutine::LuaCoroutine </td>
           <td>(</td>
           <td class="paramtype">lua_State *&#160;</td>
-          <td class="paramname"><em>parent</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>parent</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>function</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -199,7 +198,7 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a35c17c04bd4db5d6fa8d041ad50f1e3c"></a>
+<a class="anchor" id="a9e19548961bb3851bdb36ce239b8720f"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -207,7 +206,7 @@ Friends</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool Lua::LuaCoroutine::IsFinished </td>
+          <td class="memname">bool Lua::LuaCoroutine::IsRunning </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -220,7 +219,63 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns true if the coroutine has run to completion. </p>
+<p>Returns whether the coroutine is currently running. </p>
+
+</div>
+</div>
+<a class="anchor" id="a232917f64813d04b6bb2016a53b7ebcc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Lua::LuaCoroutine::LoadFile </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>filename</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Load a file into <a class="el" href="namespaceLua.html">Lua</a>. </p>
+<p>Loads a file, then executes inside the coroutine. </p>
+
+</div>
+</div>
+<a class="anchor" id="a954d91aed88596d134c78ba83929a576"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Lua::LuaCoroutine::LoadFunc </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Starts a function call in the coroutine. </p>
+
+</div>
+</div>
+<a class="anchor" id="adacc2a59164df092ac953c0aded9630c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Lua::LuaCoroutine::LoadString </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>lua_code</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Load a string into <a class="el" href="namespaceLua.html">Lua</a>. </p>
+<p>Loads a string, then executes inside the coroutine. </p>
 
 </div>
 </div>
@@ -339,7 +394,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="ae87b396b59d44fbf8b3ba1d0b4e6207c"></a>
+<a class="anchor" id="a1455694299c3a0fbff2ab0e74a0ec7b1"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -347,7 +402,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool Lua::LuaCoroutine::finished</td>
+          <td class="memname">int Lua::LuaCoroutine::max_instructions</td>
         </tr>
       </table>
   </td>
@@ -359,7 +414,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a1455694299c3a0fbff2ab0e74a0ec7b1"></a>
+<a class="anchor" id="aac03e9afa3a8355d2a096840d9d3ab0a"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -367,7 +422,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int Lua::LuaCoroutine::max_instructions</td>
+          <td class="memname">bool Lua::LuaCoroutine::running</td>
         </tr>
       </table>
   </td>
@@ -406,7 +461,7 @@ template&lt;typename RetVal  = void, typename... Params&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 24 2015 08:32:01 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 31 2015 07:44:04 for lua-bindings by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>
