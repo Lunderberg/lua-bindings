@@ -45,6 +45,18 @@ TEST(LuaClasses, GetterSetter){
   EXPECT_EQ(L.Call<int>("getter_setter"), 17);
 }
 
+TEST(LuaClasses, GetterSetter_LoadSafeLibs){
+  Lua::LuaState L;
+  L.LoadSafeLibs();
+  InitializeClass(L);
+  L.LoadString("function getter_setter()"
+               "  local var = make_TestClass()"
+               "  var:SetX(17)"
+               "  return var:GetX()"
+               "end");
+  EXPECT_EQ(L.Call<int>("getter_setter"), 17);
+}
+
 TEST(LuaClasses, DestructorCount_MakeInLua){
   constructor_called = 0;
   destructor_called = 0;

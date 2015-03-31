@@ -24,7 +24,7 @@ void Lua::LuaState::LoadSafeLibs(){
 
   LuaObject registry(L, LUA_REGISTRYINDEX);
   LuaObject globals = registry[LUA_RIDX_GLOBALS].Get();
-  //LuaDelayedPop delayed(L, 1);
+  LuaDelayedPop delayed(L, 1); // Pop the globals table off when done.
 
   LuaObject sandbox = NewTable();
 
