@@ -12,11 +12,11 @@ namespace Lua{
   //! Creates a new table on the stack.
   void NewTable(lua_State* L);
 
-  template<typename T>
+  template<typename T, bool allow_references = false>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
   Read(lua_State* L, int index);
 
-  template<typename T>
+  template<typename T, bool allow_references = false>
   typename std::enable_if<std::is_same<T, void>::value, T>::type
   Read(lua_State* L, int index);
 

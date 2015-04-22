@@ -23,6 +23,10 @@ namespace{
   std::tuple<int, int> multiple_returns(){
     return std::make_tuple(5, 6);
   }
+
+  int double_const_integer(const int x){
+    return 2*x;
+  }
 }
 
 TEST(CppFunctions, CallFunctions){
@@ -49,4 +53,8 @@ TEST(CppFunctions, CallFunctions){
   EXPECT_EQ(res4, 11);
 
   EXPECT_THROW(L.LoadString("non_existing_func()"), LuaExecuteError);
+
+  L.SetGlobal("double_const_integer", double_integer);
+  auto res5 = L.LoadString<int>("return double_const_integer(5)");
+  EXPECT_EQ(res5, 10);
 }

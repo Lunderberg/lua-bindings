@@ -88,7 +88,7 @@ namespace Lua{
       metatable["__index"] = index;
 
       LuaObject registry(L, LUA_REGISTRYINDEX);
-      registry[class_registry_entry<ClassType>()] = metatable;
+      registry[class_registry_entry<ClassType>::get()] = metatable;
     }
 
     template<typename RetVal, typename... Params>

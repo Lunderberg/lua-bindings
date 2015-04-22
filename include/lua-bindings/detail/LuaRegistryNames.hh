@@ -15,10 +15,26 @@ constexpr size_t type_id_safe(){
 }
 
 template<typename T>
-constexpr std::string class_registry_entry(){
-  std::stringstream ss;
-  ss << "Lua.Class." << type_id_safe<T>();
-  return ss.str();
-}
+struct class_registry_entry{
+  static constexpr std::string get(){
+    std::stringstream ss;
+    ss << "Lua.Class." << type_id_safe<T>();
+    return ss.str();
+  }
+};
+
+template<typename T>
+struct class_registry_entry<const T>{
+  static constexpr std::string get(){
+    return class_registry_entry<T>::get();
+  }
+};
+
+template<typename T>
+struct class_registry_entry<T&>{
+  static constexpr std::string get(){
+    return class_registry_entry<T>::get();
+  }
+};
 
 #endif /* _LUAREGISTRYNAMES_H_ */

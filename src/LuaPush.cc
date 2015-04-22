@@ -46,7 +46,7 @@ void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   lua_setmetatable(L, -2);
 }
 
-void Lua::PushMany(lua_State*){ }
+//void Lua::PushMany(lua_State*){ }
 
 void Lua::PushCodeFile(lua_State* L, const char* filename){
   int load_result = luaL_loadfilex(L, filename, "t");

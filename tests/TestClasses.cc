@@ -25,6 +25,14 @@ namespace{
   private:
     int x;
   };
+
+  int reference_func(TestClass& var){
+    return 3*var.GetX();
+  }
+
+  int const_reference_func(const TestClass& var){
+    return 4*var.GetX();
+  }
 }
 
 void InitializeClass(Lua::LuaState& L){
@@ -86,6 +94,26 @@ TEST(LuaClasses, DestructorCount_PassValueToLua){
   }
   EXPECT_EQ(constructor_called, 2); // One explicit constructor plus one default copy constructor.
   EXPECT_EQ(destructor_called, 2);  // One destructor of C++ object plus one of Lua-held object.
+}
+
+TEST(LuaClasses, DestructorCount_PassReferenceToLua){
+  constructor_called = 0;
+  destructor_called = 0;
+  {
+    Lua::LuaState L;
+    InitializeClass(L);
+    TestClass var;
+    var.SetX(42);
+    L.LoadString("function accepts_TestClass(var) "
+                 "  var:SetX(17) "
+                 "  return var:GetX() "
+                 "end");
+    auto x = L.Call<int>("accepts_TestClass", std::ref(var));
+    EXPECT_EQ(x, 17);
+    EXPECT_EQ(var.GetX(), 17);
+  }
+  EXPECT_EQ(constructor_called, 1);
+  EXPECT_EQ(destructor_called, 1);
 }
 
 TEST(LuaClasses, DestructorCount_PassSharedPointerToLua){
@@ -217,4 +245,26 @@ TEST(LuaClasses, ReturnCppClassByCPtr){
 
   EXPECT_THROW(L.Call<std::shared_ptr<TestClass> >("get_global"),
                LuaIncorrectPointerType);
+}
+
+TEST(LuaClasses, PassRefToCpp){
+  Lua::LuaState L;
+  InitializeClass(L);
+  L.SetGlobal("reference_func", reference_func);
+
+  auto res = L.LoadString<double>("var = make_TestClass() "
+                                  "var:SetX(17) "
+                                  "return reference_func(var) ");
+  EXPECT_EQ(res, 51);
+}
+
+TEST(LuaClasses, PassConstRefToCpp){
+  Lua::LuaState L;
+  InitializeClass(L);
+  L.SetGlobal("const_reference_func", const_reference_func);
+
+  auto res = L.LoadString<double>("var = make_TestClass() "
+                                  "var:SetX(17) "
+                                  "return const_reference_func(var) ");
+  EXPECT_EQ(res, 68);
 }

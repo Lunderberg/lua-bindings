@@ -41,7 +41,7 @@ namespace Lua{
       auto object = std::make_shared<ClassType>(Read<Params>(L, Indices+1)...);
       ptr->pointers.shared_ptr = object;
 
-      luaL_newmetatable(L, class_registry_entry<ClassType>().c_str());
+      luaL_newmetatable(L, class_registry_entry<ClassType>::get().c_str());
       lua_setmetatable(L, -2);
 
       return 1;

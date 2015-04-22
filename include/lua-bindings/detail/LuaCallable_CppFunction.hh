@@ -50,7 +50,7 @@ namespace Lua{
     template<int... Indices, typename RetVal_func>
     static int call_helper_function(indices<Indices...>, std::function<RetVal_func(Params...)> func,
                                     lua_State* L){
-      RetVal_func output = func(Read<Params>(L, Indices+1)...);
+      RetVal_func output = func(Read<Params, true>(L, Indices+1)...);
       int top = lua_gettop(L);
       Push(L, output);
       return lua_gettop(L) - top;
@@ -64,7 +64,7 @@ namespace Lua{
      */
     template<int... Indices>
     static int call_helper_function(indices<Indices...>, std::function<void(Params...)> func, lua_State* L){
-      func(Read<Params>(L, Indices+1)...);
+      func(Read<Params, true>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop

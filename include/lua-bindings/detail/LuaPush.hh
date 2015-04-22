@@ -43,7 +43,7 @@ namespace Lua{
     ref.Get();
   }
 
-  template<typename FirstParam, typename... Params>
+  template<bool accept_references = false, typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params);
 
   template<typename T>
@@ -76,7 +76,7 @@ namespace Lua{
 
   template<typename T>
   void PushValueDirect(lua_State* L, std::shared_ptr<T> t){
-    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>::get().c_str());
     lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
     if(!metatable_exists){
       throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
@@ -90,12 +90,12 @@ namespace Lua{
     ptr->type = PointerType::shared_ptr;
     ptr->pointers.shared_ptr = t;
 
-    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+    luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
   }
 
   template<typename T>
   void PushValueDirect(lua_State* L, std::weak_ptr<T> t){
-    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>::get().c_str());
     lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
     if(!metatable_exists){
       throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
@@ -109,7 +109,7 @@ namespace Lua{
     ptr->type = PointerType::weak_ptr;
     ptr->pointers.weak_ptr = t;
 
-    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+    luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
   }
 
   // LuaCallable (and subclasses) is the only thing that is currently pushed by pointer.
@@ -117,7 +117,7 @@ namespace Lua{
   template<typename T>
   typename std::enable_if<!std::is_base_of<LuaCallable, T>::value >::type
   PushValueDirect(lua_State* L, T* t){
-    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>().c_str());
+    int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>::get().c_str());
     lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
     if(!metatable_exists){
       throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
@@ -131,7 +131,7 @@ namespace Lua{
     ptr->type = PointerType::c_ptr;
     ptr->pointers.c_ptr = t;
 
-    luaL_setmetatable(L, class_registry_entry<T>().c_str());
+    luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
   }
 
   template<typename RetVal, typename... Params>
@@ -169,7 +169,7 @@ namespace Lua{
 
   // Need separate specialization for l-value reference, r-value reference.
   // Otherwise, it will try to make a std::shared_ptr<T&>, which is nonsensical.
-  template<typename T>
+  template<typename T, bool allow_references>
   struct PushDefaultType{
     static void Push(lua_State* L, T&& t){
       auto obj = std::make_shared<T>(t);
@@ -178,23 +178,31 @@ namespace Lua{
   };
 
   // And here is the case for l-value references.
-  template<typename T>
-  struct PushDefaultType<T&>{
+  template<typename T, bool allow_references>
+  struct PushDefaultType<T&, allow_references>{
     static void Push(lua_State* L, T& t){
       auto obj = std::make_shared<T>(t);
       PushValueDirect(L, obj);
     }
   };
 
-  template<typename T>
+  template<typename T, bool allow_references>
+  struct PushDefaultType<std::reference_wrapper<T>, allow_references>{
+    static void Push(lua_State* L, T& t){
+      static_assert(allow_references, "Unsafe to use references in this context");
+      PushValueDirect(L, std::addressof(t));
+    }
+  };
+
+  template<bool allow_references, typename T>
   auto PushDirectIfPossible(lua_State* L, T t, bool)
     -> decltype(PushValueDirect(L, t)) {
     PushValueDirect(L, t);
   }
 
-  template<typename T>
+  template<bool allow_references, typename T>
   void PushDirectIfPossible(lua_State* L, T&& t, int) {
-    PushDefaultType<T>::Push(L, std::forward<T>(t));
+    PushDefaultType<T, allow_references>::Push(L, std::forward<T>(t));
   }
 
   //! The mother method, which will push any object onto the lua stack, if possible.
@@ -204,19 +212,20 @@ namespace Lua{
     Otherwise, PushDefaultType<T>::Push is called.
     This has two special cases, one for rvalue references, and one for lvalue references.
    */
-  template<typename T>
+  template<bool allow_references = false, typename T>
   void Push(lua_State* L, T&& t){
-    PushDirectIfPossible(L, std::forward<T>(t), true);
+    PushDirectIfPossible<allow_references>(L, std::forward<T>(t), true);
   }
 
   //! Does nothing.  Needed for end of recursion of PushMany
-  void PushMany(lua_State*);
+  template<bool allow_references = false>
+  void PushMany(lua_State*){ }
 
   //! Pushes each value onto the stack, in order.
-  template<typename FirstParam, typename... Params>
+  template<bool allow_references = false, typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params){
-    Push(L, std::forward<FirstParam>(first));
-    PushMany(L, std::forward<Params>(params)...);
+    Push<allow_references>(L, std::forward<FirstParam>(first));
+    PushMany<allow_references>(L, std::forward<Params>(params)...);
   }
 
   void PushCodeFile(lua_State* L, const char* filename);

@@ -61,7 +61,7 @@ namespace Lua{
       throw LuaInvalidStackContents("Value was not userdata");
     }
 
-    void* storage = luaL_testudata(L, index, class_registry_entry<T>().c_str());
+    void* storage = luaL_testudata(L, index, class_registry_entry<T>::get().c_str());
 
     if(!storage){
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
@@ -71,7 +71,7 @@ namespace Lua{
   }
 
   //! Read from the stack, by value.
-  template<typename T>
+  template<typename T, bool allow_references>
   struct ReadDefaultType{
     static T Read(lua_State* L, int index){
       auto ptr = ReadVariablePointer<T>(L, index);
@@ -99,8 +99,8 @@ namespace Lua{
   };
 
   //! Read from the stack, by shared_ptr.
-  template<typename T>
-  struct ReadDefaultType<std::shared_ptr<T> >{
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<std::shared_ptr<T>, allow_references >{
     static std::shared_ptr<T> Read(lua_State* L, int index){
       auto ptr = ReadVariablePointer<T>(L, index);
       if(ptr->type == PointerType::shared_ptr){
@@ -122,8 +122,8 @@ namespace Lua{
   };
 
   //! Read from the stack, by weak_ptr
-  template<typename T>
-  struct ReadDefaultType<std::weak_ptr<T> >{
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<std::weak_ptr<T>, allow_references >{
     static std::weak_ptr<T> Read(lua_State* L, int index){
       auto ptr = ReadVariablePointer<T>(L, index);
       if(ptr->type == PointerType::weak_ptr){
@@ -138,8 +138,8 @@ namespace Lua{
   };
 
   //! Read from the stack, by c-style pointer.
-  template<typename T>
-  struct ReadDefaultType<T*>{
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<T*, allow_references>{
     static T* Read(lua_State* L, int index){
       auto ptr = ReadVariablePointer<T>(L, index);
       switch(ptr->type){
@@ -166,12 +166,21 @@ namespace Lua{
     }
   };
 
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<T&, allow_references>{
+    static T& Read(lua_State* L, int index){
+      static_assert(allow_references, "Unsafe to read as a reference here");
+      T* ptr = ReadDefaultType<T*, allow_references>::Read(L, index);
+      return *ptr;
+    }
+  };
+
   //! Read from the stack as a tuple.
   /*! This assumes that the values to be stored in the tuple start at "index",
       and proceed in order.
    */
-  template<typename... Params>
-  struct ReadDefaultType<std::tuple<Params...> >{
+  template<typename... Params, bool allow_references>
+  struct ReadDefaultType<std::tuple<Params...>, allow_references >{
     static std::tuple<Params...> Read(lua_State* L, int index){
       return Read_Helper(L, index, build_indices<sizeof...(Params)>() );
     }
@@ -185,8 +194,8 @@ namespace Lua{
   /*! This assumes that the lua value at "index" is a table with only integer keys.
     Assumes that each value stored in the table can be converted to T.
    */
-  template<typename T>
-  struct ReadDefaultType<std::vector<T> >{
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<std::vector<T>, allow_references >{
     static std::vector<T> Read(lua_State* L, int index){
       std::vector<T> output;
 
@@ -204,8 +213,8 @@ namespace Lua{
   /*! This assumes that the lua value at "index" is a table with only string keys.
     Assumes that each value stored in the table can be converted to T.
    */
-  template<typename T>
-  struct ReadDefaultType<std::map<std::string, T> >{
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<std::map<std::string, T>, allow_references >{
     static std::map<std::string, T> Read(lua_State* L, int index){
       index = lua_absindex(L, index); // In case of negative index
       std::map<std::string, T> output;
@@ -231,12 +240,12 @@ namespace Lua{
     }
   };
 
-  template<typename T>
+  template<typename T, bool allow_references>
   T ReadDirectIfPossible(lua_State* L, int index, int){
-    return ReadDefaultType<T>::Read(L, index);
+    return ReadDefaultType<T, allow_references>::Read(L, index);
   }
 
-  template<typename T>
+  template<typename T, bool allow_references>
   auto ReadDirectIfPossible(lua_State* L, int index, bool)
     -> decltype(ReadDirect<T>(L, index)) {
     return ReadDirect<T>(L, index);
@@ -247,14 +256,14 @@ namespace Lua{
     The auto -> decltype() construction ensures that ReadDirect<T>() is used if it is valid.
     Otherwise, ReadDefaultType<T>::Read() is used, which goes to a number of partial specializations.
    */
-  template<typename T>
+  template<typename T, bool allow_references = false>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
   Read(lua_State* L, int index){
-    return ReadDirectIfPossible<T>(L, index, true);
+    return ReadDirectIfPossible<T, allow_references>(L, index, true);
   }
 
   //! Empty functions, needed for some templates.
-  template<typename T>
+  template<typename T, bool allow_references = false>
   typename std::enable_if<std::is_same<T, void>::value, T>::type
   Read(lua_State*, int) { }
 

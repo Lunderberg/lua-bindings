@@ -43,7 +43,7 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      void* storage = luaL_testudata(L, 1, class_registry_entry<ClassType>().c_str());
+      void* storage = luaL_testudata(L, 1, class_registry_entry<ClassType>::get().c_str());
       lua_remove(L, 1);
 
       if(!storage){
