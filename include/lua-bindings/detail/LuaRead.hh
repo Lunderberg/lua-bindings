@@ -32,12 +32,9 @@ namespace Lua{
   ReadDirect(lua_State* L, int index){
     int success;
     lua_Number output = lua_tonumberx(L, index, &success);
-    // // The check of whether the value was indeed a number can give false negatives.
-    // // For now, disabling the check.
-    // // The check yields false at times when converting a luaTable to a vector<int>
-    // if(!success){
-    //   throw LuaInvalidStackContents("Lua value could not be converted to number");
-    // }
+    if(!success){
+      throw LuaInvalidStackContents("Lua value could not be converted to number");
+    }
     return output;
   }
 
