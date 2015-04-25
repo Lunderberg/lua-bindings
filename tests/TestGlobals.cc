@@ -24,6 +24,13 @@ TEST(LuaGlobals, ReadWriteStrings){
   EXPECT_EQ(L.CastGlobal<std::string>("x"), "foo");
 }
 
+TEST(LuaGlobals, ReadWriteBoolean){
+  Lua::LuaState L;
+  L.LoadString("x = true; y = false");
+  EXPECT_EQ(L.CastGlobal<bool>("x"), true);
+  EXPECT_EQ(L.CastGlobal<bool>("y"), false);
+}
+
 TEST(LuaGlobals, ReadTable){
   Lua::LuaState L;
   L.LoadString("x = {}; x.a = 5; x.b = 'hi'; x[1] = 12345");

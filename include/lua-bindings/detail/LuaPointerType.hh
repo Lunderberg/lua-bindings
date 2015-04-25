@@ -18,6 +18,7 @@ namespace Lua{
       std::weak_ptr<T> weak_ptr;
       T* c_ptr;
     } pointers;
+    unsigned long reference_id;
   };
 }
 

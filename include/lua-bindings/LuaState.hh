@@ -183,26 +183,6 @@ namespace Lua{
     }
 
   private:
-    // //! Pushes all arguments to the Lua stack
-    // /*! Pushes each parameter to the Lua stack, in the order given.
-    //   Requires that all parameters can be converted to Lua types.
-    //   Falls at compile time otherwise.
-    // */
-    // template<typename... Params>
-    // void PushMany(Params&&... params){
-    //   Lua::PushMany(L, std::forward<Params>(params)...);
-    // }
-
-    // //! Pushes anything onto the Lua stack
-    // /*! Uses LuaObject::Push.
-    //   I'm lazy, and would rather do "L->Push()" than "LuaObject::Push(L)"
-    // */
-    // template<typename T>
-    // Lua::LuaObject Push(T t){
-    //   Lua::Push(L, t);
-    //   return Lua::LuaObject(L);
-    // }
-
     //! Calls a function from the stack.
     /*! Assumes that the Lua stack has a function on top.
       Pushes each argument onto the stack.
@@ -211,6 +191,7 @@ namespace Lua{
     template<typename RetVal=void, typename... Params>
     RetVal CallFromStack(Params&&... params){
       int top = lua_gettop(L) - 1; // -1 because the function is already on the stack.
+      PreserveValidReferences ref_save(L);
       PushMany<true>(L, std::forward<Params>(params)...);
       int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
       int nresults = lua_gettop(L) - top;

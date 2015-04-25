@@ -268,3 +268,35 @@ TEST(LuaClasses, PassConstRefToCpp){
                                   "return const_reference_func(var) ");
   EXPECT_EQ(res, 68);
 }
+
+TEST(LuaClasses, ReferenceExpires){
+  Lua::LuaState L;
+  InitializeClass(L);
+  L.LoadString("saved_copy = nil "
+               " "
+               "function accepts_TestClass(var) "
+               "  saved_copy = var "
+               "  var:SetX(17) "
+               "  return var:GetX() "
+               "end "
+               " "
+               "function method_returns_nil() "
+               "  return saved_copy:GetX()==nil "
+               "end "
+               " "
+               "function returns_afterward() "
+               "  return saved_copy "
+               "end ");
+
+  TestClass var;
+  var.SetX(42);
+
+  auto x = L.Call<int>("accepts_TestClass", std::ref(var));
+  EXPECT_EQ(x, 17);
+  EXPECT_EQ(var.GetX(), 17);
+
+  EXPECT_TRUE(L.Call<bool>("method_returns_nil"));
+
+  EXPECT_THROW(L.Call<TestClass>("returns_afterward"),
+               LuaExpiredReference);
+}

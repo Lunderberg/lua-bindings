@@ -16,6 +16,7 @@ Exception(LuaException, LuaFileNotFound);
 Exception(LuaException, LuaInvalidStackContents);
 Exception(LuaInvalidStackContents, LuaIncorrectPointerType);
 Exception(LuaInvalidStackContents, LuaExpiredWeakPointer);
+Exception(LuaInvalidStackContents, LuaExpiredReference);
 Exception(LuaException, LuaFileParseError);
 
 Exception(LuaException, LuaExecuteError);

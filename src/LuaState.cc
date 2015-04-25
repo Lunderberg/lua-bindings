@@ -2,11 +2,17 @@
 
 #include <cassert>
 #include <iostream>
+#include <set>
+
+#include "lua-bindings/detail/LuaRegistryNames.hh"
+#include "lua-bindings/detail/LuaReferenceSet.hh"
 
 Lua::LuaState::LuaState() : L(nullptr){
   memory[0] = 0;
   memory[1] = 0;
   L = lua_newstate(limited_memory_alloc, &memory);
+
+  InitializeValidReferenceTable(L);
 }
 
 Lua::LuaState::~LuaState() {

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <tuple>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include "LuaObject.hh"
 #include "LuaPointerType.hh"
 #include "LuaPush.hh"
+#include "LuaReferenceSet.hh"
 #include "LuaRegistryNames.hh"
 #include "LuaTableReference.hh"
 #include "TemplateUtils.hh"
@@ -25,7 +27,8 @@ namespace Lua{
       without any additional dispatch to methods.
    */
   template<typename T>
-  typename std::enable_if<std::is_arithmetic<T>::value, T>::type
+  typename std::enable_if<std::is_arithmetic<T>::value &&
+                          !std::is_same<T, bool>::value, T>::type
   ReadDirect(lua_State* L, int index){
     int success;
     lua_Number output = lua_tonumberx(L, index, &success);
@@ -54,6 +57,12 @@ namespace Lua{
     return lua_toboolean(L, index);
   }
 
+  template<typename T>
+  typename std::enable_if<std::is_same<T, void*>::value, T>::type
+  ReadDirect(lua_State* L, int index){
+    return lua_touserdata(L, index);
+  }
+
   //! Helper method, for grabbing a pointer from the stack.
   template<typename T>
   VariablePointer<T>* ReadVariablePointer(lua_State* L, int index){
@@ -74,27 +83,7 @@ namespace Lua{
   template<typename T, bool allow_references>
   struct ReadDefaultType{
     static T Read(lua_State* L, int index){
-      auto ptr = ReadVariablePointer<T>(L, index);
-      switch(ptr->type){
-      case PointerType::shared_ptr:
-        return *ptr->pointers.shared_ptr;
-
-      case PointerType::weak_ptr:
-        {
-          auto lock = ptr->pointers.weak_ptr.lock();
-          if(lock){
-            return *lock;
-          } else {
-            throw LuaExpiredWeakPointer("Weak_ptr returned was no longer valid");
-          }
-        }
-
-      case PointerType::c_ptr:
-        return *ptr->pointers.c_ptr;
-
-      default:
-        assert(false);
-      }
+      return *ReadDefaultType<T*, allow_references>::Read(L, index);
     }
   };
 
@@ -157,7 +146,13 @@ namespace Lua{
         }
 
       case PointerType::c_ptr:
-        return ptr->pointers.c_ptr;
+      {
+        if(IsValidReference(L, ptr->reference_id)){
+          return ptr->pointers.c_ptr;
+        } else {
+          throw LuaExpiredReference("C++ reference was no longer valid");
+        }
+      }
 
       default:
         // Should never reach here.

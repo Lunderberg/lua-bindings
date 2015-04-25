@@ -14,6 +14,7 @@
 #include "LuaObject.hh"
 #include "LuaPointerType.hh"
 #include "LuaPush.hh"
+#include "LuaReferenceSet.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
 
@@ -69,8 +70,13 @@ namespace Lua{
         }
       case PointerType::c_ptr:
         {
-          return call_member_function_helper(build_indices<sizeof...(Params)>(),
-                                             L, ptr->pointers.c_ptr);
+          if(IsValidReference(L, ptr->reference_id)){
+            return call_member_function_helper(build_indices<sizeof...(Params)>(),
+                                               L, ptr->pointers.c_ptr);
+          } else {
+            Push(L, LuaNil());
+            return 1;
+          }
         }
       default:
         std::cout << "Calling on unknown pointer type, should never happen" << std::endl;
