@@ -69,6 +69,16 @@ namespace Lua{
 
     void* storage = luaL_testudata(L, index, class_registry_entry<T>::get().c_str());
 
+    // If 'const' is requested, can also return a non-const version.
+    // This will not, however, cause the non-const request to return a const version.
+    // The std::is_same check is not required, but allows this conditional
+    //   to be optimized out when requesting a non-const member.
+    if(!std::is_same<T, typename std::remove_const<T>::type>::value &&
+       !storage){
+      storage = luaL_testudata(L, index,
+                               class_registry_entry<typename std::remove_const<T>::type>::get().c_str());
+    }
+
     if(!storage){
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
     }

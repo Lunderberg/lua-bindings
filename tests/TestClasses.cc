@@ -300,3 +300,19 @@ TEST(LuaClasses, ReferenceExpires){
   EXPECT_THROW(L.Call<TestClass>("returns_afterward"),
                LuaExpiredReference);
 }
+
+TEST(LuaClasses, PassConst){
+  Lua::LuaState L;
+  InitializeClass(L);
+
+  L.LoadString("function accepts_TestClass(var) "
+               "  var:SetX(17) "
+               "  return var:GetX() "
+               "end ");
+
+  TestClass var;
+  var.SetX(42);
+  EXPECT_THROW(L.Call("accepts_TestClass", std::cref(var)),
+               LuaExecuteError);
+  EXPECT_EQ(var.GetX(), 42);
+}

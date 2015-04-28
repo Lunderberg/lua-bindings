@@ -69,26 +69,55 @@ namespace Lua{
   template<typename ClassType>
   class MakeClass {
   public:
-    MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L){
-      luaL_newmetatable(L, name.c_str());
-      metatable = LuaObject(L);
-      metatable["__metatable"] = "Access restricted";
+    MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L),
+                                                const_metatable(L), const_index(L) {
+      {
+        luaL_newmetatable(L, name.c_str());
+        metatable = LuaObject(L);
+        metatable["__metatable"] = "Access restricted";
 
-      // Store a deletion function pointer that can be found from the cclosure.
-      void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-      *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
-      lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
-      LuaObject gc(L);
-      metatable["__gc"] = gc;
+        // Store a deletion function pointer that can be found from the cclosure.
+        void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
+        *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
+        lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
+        LuaObject gc(L);
+        metatable["__gc"] = gc;
 
-      NewTable(L);
-      index = LuaObject(L);
+        NewTable(L);
+        index = LuaObject(L);
+      }
+
+      {
+        const_name = "const." + name;
+        luaL_newmetatable(L, const_name.c_str());
+        const_metatable = LuaObject(L);
+        const_metatable["__metatable"] = "Access restricted";
+
+        // Store a deletion function pointer that can be found from the cclosure.
+        void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
+        *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<const ClassType>;
+        lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
+        LuaObject gc(L);
+        const_metatable["__gc"] = gc;
+
+        NewTable(L);
+        const_index = LuaObject(L);
+      }
     }
     ~MakeClass(){
-      metatable["__index"] = index;
+      {
+        const_metatable["__index"] = const_index;
 
-      LuaObject registry(L, LUA_REGISTRYINDEX);
-      registry[class_registry_entry<ClassType>::get()] = metatable;
+        LuaObject registry(L, LUA_REGISTRYINDEX);
+        registry[class_registry_entry<const ClassType>::get()] = const_metatable;
+      }
+
+      {
+        metatable["__index"] = index;
+
+        LuaObject registry(L, LUA_REGISTRYINDEX);
+        registry[class_registry_entry<ClassType>::get()] = metatable;
+      }
     }
 
     template<typename RetVal, typename... Params>
@@ -116,9 +145,14 @@ namespace Lua{
 
   private:
     lua_State* L;
+
     std::string name;
     LuaObject metatable;
     LuaObject index;
+
+    std::string const_name;
+    LuaObject const_metatable;
+    LuaObject const_index;
   };
 }
 

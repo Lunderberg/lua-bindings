@@ -27,13 +27,6 @@ struct class_registry_entry{
 };
 
 template<typename T>
-struct class_registry_entry<const T>{
-  static constexpr std::string get(){
-    return class_registry_entry<T>::get();
-  }
-};
-
-template<typename T>
 struct class_registry_entry<T&>{
   static constexpr std::string get(){
     return class_registry_entry<T>::get();
