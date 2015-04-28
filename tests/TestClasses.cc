@@ -33,6 +33,14 @@ namespace{
   int const_reference_func(const TestClass& var){
     return 4*var.GetX();
   }
+
+  int const_value_func(const TestClass var){
+    return 5*var.GetX();
+  }
+
+  int value_func(TestClass var){
+    return 6*var.GetX();
+  }
 }
 
 void InitializeClass(Lua::LuaState& L){
@@ -315,4 +323,31 @@ TEST(LuaClasses, PassConst){
   EXPECT_THROW(L.Call("accepts_TestClass", std::cref(var)),
                LuaExecuteError);
   EXPECT_EQ(var.GetX(), 42);
+}
+
+
+
+TEST(LuaClasses, PassConstValueToCpp){
+  Lua::LuaState L;
+  InitializeClass(L);
+  L.SetGlobal("const_value_func", const_value_func);
+  L.SetGlobal("value_func", value_func);
+
+  L.LoadString("function calls_value_func(var) "
+               "  value_func(var) "
+               "end "
+               "function calls_const_value_func(var) "
+               "  const_value_func(var) "
+               "end ");
+
+  TestClass var;
+
+  EXPECT_NO_THROW(L.Call("calls_value_func", std::ref(var)));
+  EXPECT_NO_THROW(L.Call("calls_value_func", std::cref(var)));
+  EXPECT_NO_THROW(L.Call("calls_const_value_func", std::ref(var)));
+  EXPECT_NO_THROW(L.Call("calls_const_value_func", std::cref(var)));
+
+  L.LoadString<const TestClass>("local args = {...} "
+                                "return args[1] ",
+                                std::cref(var));
 }

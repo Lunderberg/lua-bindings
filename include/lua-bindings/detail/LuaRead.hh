@@ -2,7 +2,6 @@
 #define _LUAREAD_H_
 
 #include <cassert>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -90,7 +89,15 @@ namespace Lua{
   template<typename T, bool allow_references>
   struct ReadDefaultType{
     static T Read(lua_State* L, int index){
-      return *ReadDefaultType<T*, allow_references>::Read(L, index);
+      return ReadDefaultType<const T, allow_references>::Read(L, index);
+    }
+  };
+
+  //! Read from the stack, by value.
+  template<typename T, bool allow_references>
+  struct ReadDefaultType<const T, allow_references>{
+    static T Read(lua_State* L, int index){
+      return *ReadDefaultType<const T*, allow_references>::Read(L, index);
     }
   };
 
