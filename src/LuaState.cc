@@ -6,31 +6,30 @@
 
 #include "lua-bindings/detail/LuaRegistryNames.hh"
 #include "lua-bindings/detail/LuaReferenceSet.hh"
+#include "lua-bindings/detail/LuaKeepAlive.hh"
 
-Lua::LuaState::LuaState() : L(nullptr){
+Lua::LuaState::LuaState(){
   memory[0] = 0;
   memory[1] = 0;
-  L = lua_newstate(limited_memory_alloc, &memory);
+  lua_State* L = lua_newstate(limited_memory_alloc, &memory);
+  shared_L = std::shared_ptr<lua_State>(L, lua_close);
 
   InitializeValidReferenceTable(L);
+  InitializeKeepAliveTable(L);
 }
 
-Lua::LuaState::~LuaState() {
-  if(L){
-    lua_close(L);
-  }
-}
+Lua::LuaState::~LuaState() { }
 
 void Lua::LuaState::LoadLibs(){
-  luaL_openlibs(L);
+  luaL_openlibs(state());
 }
 
 void Lua::LuaState::LoadSafeLibs(){
   LoadLibs();
 
-  LuaObject registry(L, LUA_REGISTRYINDEX);
+  LuaObject registry(state(), LUA_REGISTRYINDEX);
   LuaObject globals = registry[LUA_RIDX_GLOBALS].Get();
-  LuaDelayedPop delayed(L, 1); // Pop the globals table off when done.
+  LuaDelayedPop delayed(state(), 1); // Pop the globals table off when done.
 
   LuaObject sandbox = NewTable();
 
@@ -121,7 +120,7 @@ void Lua::LuaState::LoadSafeLibs(){
 
       LuaObject global_package = globals[package].Get();
       LuaObject sandbox_package = sandbox[package].Get();
-      LuaDelayedPop delayed(L,2);
+      LuaDelayedPop delayed(state(),2);
 
       sandbox_package[function].Set(global_package[function]);
     }
@@ -131,8 +130,8 @@ void Lua::LuaState::LoadSafeLibs(){
 }
 
 Lua::LuaObject Lua::LuaState::NewTable(){
-  Lua::NewTable(L);
-  return Lua::LuaObject(L);
+  Lua::NewTable(state());
+  return Lua::LuaObject(state());
 }
 
 void* Lua::limited_memory_alloc(void* ud, void* ptr, size_t osize, size_t nsize){

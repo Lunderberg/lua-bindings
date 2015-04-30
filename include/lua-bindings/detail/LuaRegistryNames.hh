@@ -5,9 +5,12 @@
 #include <string>
 
 extern const std::string cpp_function_registry_entry;
+
 extern const std::string cpp_reference_counter;
 extern const std::string cpp_valid_reference_set;
 extern const std::string cpp_reference_set_metatable;
+
+extern const std::string keepalive_table;
 
 template<typename T>
 struct type_holder{ static void id(){ } };

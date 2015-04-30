@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
+#include <memory>
+
 #include "lua-bindings/LuaState.hh"
 
 TEST(LuaCoroutines, RunCoroutine){
@@ -81,4 +84,26 @@ TEST(LuaCoroutines, RepeatedFunction){
   auto res2 = thread.Resume<int>(5);
   ASSERT_EQ(res2, 5);
   ASSERT_FALSE(thread.IsRunning());
+}
+
+TEST(LuaCoroutines, CoroutineDestructor){
+  std::unique_ptr<Lua::LuaCoroutine> thread;
+
+  {
+    Lua::LuaState L;
+
+    L.LoadString("function func() "
+                 "  return 5 "
+                 "end");
+
+    EXPECT_EQ(lua_gettop(L.state()), 0);
+    auto thread_obj = L.NewCoroutine();
+    thread = std::unique_ptr<Lua::LuaCoroutine>(new Lua::LuaCoroutine(thread_obj));
+    EXPECT_EQ(lua_gettop(L.state()), 0);
+  }
+
+  // Make sure that the thread keeps the lua_State alive.
+  thread->LoadFunc("func");
+  auto res = thread->Resume<int>();
+  EXPECT_EQ(res, 5);
 }

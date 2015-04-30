@@ -1,6 +1,7 @@
 #ifndef _LUACOROUTINE_H_
 #define _LUACOROUTINE_H_
 
+#include <memory>
 #include <string>
 
 #include <lua.hpp>
@@ -22,7 +23,9 @@ namespace Lua{
   class LuaCoroutine{
   public:
     //! Constructs the Lua routine, preparing it for the first resume.
-    LuaCoroutine(lua_State* parent);
+    LuaCoroutine(std::shared_ptr<lua_State> parent);
+
+    ~LuaCoroutine();
 
     //! Starts a function call in the coroutine.
     void LoadFunc(const char* name);
@@ -95,9 +98,12 @@ namespace Lua{
     }
 
   private:
+    std::shared_ptr<lua_State> parent;
+
     bool running;
     lua_State* thread;
     int max_instructions;
+    int reference;
 
     friend void yielding_hook(lua_State* L, lua_Debug* ar);
     static bool ended_by_timeout;

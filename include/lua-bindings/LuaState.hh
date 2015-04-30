@@ -48,7 +48,7 @@ namespace Lua{
     /*! Use this as rarely as possible, if something cannot be done through the framework.
       As tpphe framework becomes more fully-featured, this may become a private function.
     */
-    lua_State* state() { return L; }
+    lua_State* state() { return shared_L.get(); }
 
     //! Returns the current memory used, in bytes.
     /*! Returns all memory allocated by the lua virtual machine.
@@ -71,7 +71,7 @@ namespace Lua{
     */
     template<typename RetVal=void, typename... Params>
     RetVal LoadFile(const char* filename, Params&&... params){
-      PushCodeFile(L, filename);
+      PushCodeFile(state(), filename);
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
@@ -80,7 +80,7 @@ namespace Lua{
     */
     template<typename RetVal=void, typename... Params>
     RetVal LoadString(const std::string& lua_code, Params&&... params){
-      PushCodeString(L, lua_code);
+      PushCodeString(state(), lua_code);
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
@@ -101,8 +101,8 @@ namespace Lua{
     */
     template<typename T>
     void SetGlobal(const char* name, T t){
-      Push(L, t);
-      lua_setglobal(L, name);
+      Push(state(), t);
+      lua_setglobal(state(), name);
     }
 
     //! Returns the value of a global variable.
@@ -113,7 +113,7 @@ namespace Lua{
     template<typename T>
     T CastGlobal(const char* name){
       auto obj = GetGlobal(name);
-      LuaDelayedPop delayed(L, 1);
+      LuaDelayedPop delayed(state(), 1);
       return obj.Cast<T>();
     }
 
@@ -123,8 +123,8 @@ namespace Lua{
       It might be necessary for some users, which is why it remains public.
      */
     Lua::LuaObject GetGlobal(const char* name){
-      lua_getglobal(L, name);
-      return Lua::LuaObject(L, -1);
+      lua_getglobal(state(), name);
+      return Lua::LuaObject(state(), -1);
     }
 
     //! Calls a Lua function
@@ -140,7 +140,7 @@ namespace Lua{
     */
     template<typename RetVal=void, typename... Params>
     RetVal Call(const char* name, Params&&... params){
-      lua_getglobal(L, name);
+      lua_getglobal(state(), name);
       return CallFromStack<RetVal>(std::forward<Params>(params)...);
     }
 
@@ -167,7 +167,7 @@ namespace Lua{
      */
     template<typename ClassType>
     Lua::MakeClass<ClassType> MakeClass(std::string name){
-      return Lua::MakeClass<ClassType>(L, name);
+      return Lua::MakeClass<ClassType>(state(), name);
     }
 
     //! Returns a new coroutine
@@ -179,7 +179,7 @@ namespace Lua{
         or the final return value from the function, whichever occurs.
      */
     LuaCoroutine NewCoroutine(){
-      return LuaCoroutine(L);
+      return LuaCoroutine(shared_L);
     }
 
   private:
@@ -190,25 +190,24 @@ namespace Lua{
      */
     template<typename RetVal=void, typename... Params>
     RetVal CallFromStack(Params&&... params){
-      int top = lua_gettop(L) - 1; // -1 because the function is already on the stack.
-      PreserveValidReferences ref_save(L);
-      PushMany<true>(L, std::forward<Params>(params)...);
-      int result = lua_pcall(L, sizeof...(params), LUA_MULTRET, 0);
-      int nresults = lua_gettop(L) - top;
-      LuaDelayedPop delayed(L, nresults);
+      int top = lua_gettop(state()) - 1; // -1 because the function is already on the stack.
+      PreserveValidReferences ref_save(state());
+      PushMany<true>(state(), std::forward<Params>(params)...);
+      int result = lua_pcall(state(), sizeof...(params), LUA_MULTRET, 0);
+      int nresults = lua_gettop(state()) - top;
+      LuaDelayedPop delayed(state(), nresults);
       if(result){
-        auto error_message = Read<std::string>(L, -1);
+        auto error_message = Read<std::string>(state(), -1);
         if(result == LUA_ERRMEM){
           throw LuaOutOfMemoryError(error_message);
         } else {
           throw LuaExecuteError(error_message);
         }
       }
-      return Lua::Read<RetVal>(L, top - nresults);
+      return Lua::Read<RetVal>(state(), top - nresults);
     }
 
-    //! The internal lua state.
-    lua_State* L;
+
     //! The total memory used and allowed
     /*! Keeps track of the memory allocated by the Lua virtual machine.
       memory[0] is the size in bytes that have been allocated.
@@ -216,6 +215,9 @@ namespace Lua{
       If memory[1] is 0, there is no restriction.
      */
     unsigned long memory[2];
+
+    //! The internal lua state.
+    std::shared_ptr<lua_State> shared_L;
   };
 }
 

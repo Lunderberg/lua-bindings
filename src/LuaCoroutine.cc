@@ -1,10 +1,19 @@
 #include "lua-bindings/detail/LuaCoroutine.hh"
 
+#include "lua-bindings/detail/LuaKeepAlive.hh"
+
 bool Lua::LuaCoroutine::ended_by_timeout = false;
 
-Lua::LuaCoroutine::LuaCoroutine(lua_State* parent)
-  : running(false), max_instructions(-1) {
-  thread = lua_newthread(parent);
+Lua::LuaCoroutine::LuaCoroutine(std::shared_ptr<lua_State> parent)
+  : parent(parent), running(false), max_instructions(-1) {
+  thread = lua_newthread(parent.get());
+  LuaDelayedPop delayed(parent.get(), 1);
+
+  reference = KeepObjectAlive(parent.get(), -1);
+}
+
+Lua::LuaCoroutine::~LuaCoroutine(){
+  AllowToDie(parent.get(), reference);
 }
 
 void Lua::yielding_hook(lua_State* L, lua_Debug*){

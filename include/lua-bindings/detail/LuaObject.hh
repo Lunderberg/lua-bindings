@@ -29,25 +29,27 @@ namespace Lua{
     LuaObject(lua_State* L, int stack_pos=-1);
     virtual ~LuaObject() { }
 
-    bool IsNumber();
-    bool IsString();
-    bool IsFunction();
-    bool IsNil();
-    bool IsBoolean();
-    bool IsTable();
-    bool IsUserData();
-    bool IsLightUserData();
-    bool IsThread();
+    bool IsNumber() const;
+    bool IsString() const;
+    bool IsFunction() const;
+    bool IsNil() const;
+    bool IsBoolean() const;
+    bool IsTable() const;
+    bool IsUserData() const;
+    bool IsLightUserData() const;
+    bool IsThread() const;
 
     template<typename T>
     T Cast(){
       return Read<T>(L, stack_pos);
     }
 
-    int Length();
+    int Length() const;
 
     void MoveToTop();
     void Pop();
+
+    int StackPos() const;
 
     LuaTableReference<std::string> operator[](std::string key);
     LuaTableReference<int> operator[](int key);
@@ -55,7 +57,7 @@ namespace Lua{
   private:
     friend class LuaState;
 
-    int LuaType();
+    int LuaType() const;
 
     lua_State* L;
     int stack_pos;
