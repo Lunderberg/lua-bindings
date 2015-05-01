@@ -7,6 +7,7 @@
 #include "lua-bindings/detail/LuaRegistryNames.hh"
 #include "lua-bindings/detail/LuaReferenceSet.hh"
 #include "lua-bindings/detail/LuaKeepAlive.hh"
+#include "lua-bindings/detail/LuaHoldWeakPtr.hh"
 
 Lua::LuaState::LuaState(){
   memory[0] = 0;
@@ -16,6 +17,7 @@ Lua::LuaState::LuaState(){
 
   InitializeValidReferenceTable(L);
   InitializeKeepAliveTable(L);
+  InitializeHeldWeakPtr(shared_L);
 }
 
 Lua::LuaState::~LuaState() { }

@@ -16,6 +16,7 @@
 #include "detail/LuaCallable.hh"
 #include "detail/LuaCallable_CppFunction.hh"
 #include "detail/LuaCallable_MemberFunction.hh"
+#include "detail/LuaCallFromStack.hh"
 #include "detail/LuaCoroutine.hh"
 #include "detail/LuaDelayedPop.hh"
 #include "detail/LuaExceptions.hh"
@@ -190,21 +191,7 @@ namespace Lua{
      */
     template<typename RetVal=void, typename... Params>
     RetVal CallFromStack(Params&&... params){
-      int top = lua_gettop(state()) - 1; // -1 because the function is already on the stack.
-      PreserveValidReferences ref_save(state());
-      PushMany<true>(state(), std::forward<Params>(params)...);
-      int result = lua_pcall(state(), sizeof...(params), LUA_MULTRET, 0);
-      int nresults = lua_gettop(state()) - top;
-      LuaDelayedPop delayed(state(), nresults);
-      if(result){
-        auto error_message = Read<std::string>(state(), -1);
-        if(result == LUA_ERRMEM){
-          throw LuaOutOfMemoryError(error_message);
-        } else {
-          throw LuaExecuteError(error_message);
-        }
-      }
-      return Lua::Read<RetVal>(state(), top - nresults);
+      return Lua::CallFromStack<RetVal>(state(), std::forward<Params>(params)...);
     }
 
 

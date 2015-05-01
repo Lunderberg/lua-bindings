@@ -12,6 +12,9 @@ extern const std::string cpp_reference_set_metatable;
 
 extern const std::string keepalive_table;
 
+extern const std::string luastate_weakptr;
+extern const std::string luastate_weakptr_metatable;
+
 template<typename T>
 struct type_holder{ static void id(){ } };
 

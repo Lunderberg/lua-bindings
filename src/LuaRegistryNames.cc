@@ -8,3 +8,6 @@ const std::string cpp_reference_set_metatable = "Lua.Cpp.Reference.Set.Metatable
 
 const std::string keepalive_counter = "Lua.KeepAlive.Counter";
 const std::string keepalive_table = "Lua.KeepAlive.Table";
+
+const std::string luastate_weakptr = "LuaState.WeakPtr";
+const std::string luastate_weakptr_metatable = "LuaState.WeakPtr.Metatable";
