@@ -98,7 +98,7 @@ TEST(LuaCoroutines, CoroutineDestructor){
 
     EXPECT_EQ(lua_gettop(L.state()), 0);
     auto thread_obj = L.NewCoroutine();
-    thread = std::unique_ptr<Lua::LuaCoroutine>(new Lua::LuaCoroutine(thread_obj));
+    thread = std::unique_ptr<Lua::LuaCoroutine>(new Lua::LuaCoroutine(std::move(thread_obj)));
     EXPECT_EQ(lua_gettop(L.state()), 0);
   }
 

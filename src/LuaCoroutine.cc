@@ -13,7 +13,15 @@ Lua::LuaCoroutine::LuaCoroutine(std::shared_ptr<lua_State> parent)
 }
 
 Lua::LuaCoroutine::~LuaCoroutine(){
-  AllowToDie(parent.get(), reference);
+  if(reference != -1){
+    AllowToDie(parent.get(), reference);
+  }
+}
+
+Lua::LuaCoroutine::LuaCoroutine(LuaCoroutine&& other)
+  : parent(other.parent), running(other.running), thread(other.thread),
+    max_instructions(other.max_instructions), reference(other.reference){
+  other.reference = -1;
 }
 
 void Lua::yielding_hook(lua_State* L, lua_Debug*){

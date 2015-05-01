@@ -27,6 +27,10 @@ namespace Lua{
 
     ~LuaCoroutine();
 
+    LuaCoroutine(const LuaCoroutine& other) = delete;
+    LuaCoroutine(LuaCoroutine&& other);
+    LuaCoroutine& operator=(const LuaCoroutine& other) = delete;
+
     //! Starts a function call in the coroutine.
     void LoadFunc(const char* name);
 
