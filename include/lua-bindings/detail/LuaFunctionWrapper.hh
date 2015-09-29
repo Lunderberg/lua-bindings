@@ -28,11 +28,40 @@ namespace Lua {
 #include "LuaKeepAlive.hh"
 
 namespace Lua{
+  template<typename T>
+  struct ReferenceConverter{
+    T convert(T t){
+      return t;
+    }
+  };
+
+  template<typename T>
+  struct ReferenceConverter<T&&>{
+    T&& convert(T&& t){
+      return t;
+    }
+  };
+
+  template<typename T>
+  struct ReferenceConverter<T&>{
+    std::reference_wrapper<T> convert(T& t){
+      return std::ref(t);
+    }
+  };
+
+  template<typename T>
+  struct ReferenceConverter<const T&>{
+    std::reference_wrapper<const T> convert(const T& t){
+      return std::cref(t);
+    }
+  };
+
   template<typename RetVal, typename... Params>
   RetVal FunctionWrapper::Call(Params&&... params){
     lua_State* L = shared_L.get();
     PushLivingToStack(L, reference);
-    return Lua::CallFromStack<RetVal>(shared_L.get(), std::forward<Params>(params)...);
+    //return Lua::CallFromStack<RetVal>(shared_L.get(), std::forward<Params>(params)...);
+    return Lua::CallFromStack<RetVal>(shared_L.get(), ReferenceConverter<Params>().convert(params)...);
   }
 }
 

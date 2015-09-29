@@ -10,6 +10,8 @@ namespace Lua{
   class LuaCallable{
   public:
     virtual ~LuaCallable() { }
+    int call_noexcept(lua_State* L);
+  private:
     virtual int call(lua_State* L) = 0;
   };
 

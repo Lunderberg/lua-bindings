@@ -10,10 +10,16 @@
 #include "lua-bindings/detail/LuaHoldWeakPtr.hh"
 
 Lua::LuaState::LuaState(){
+  memory = new unsigned long[2];
   memory[0] = 0;
   memory[1] = 0;
-  lua_State* L = lua_newstate(limited_memory_alloc, &memory);
-  shared_L = std::shared_ptr<lua_State>(L, lua_close);
+  lua_State* L = lua_newstate(limited_memory_alloc, memory);
+  unsigned long* local_memory = memory;
+  shared_L = std::shared_ptr<lua_State>(L,
+                                        [local_memory](lua_State* L){
+                                          lua_close(L);
+                                          delete[] local_memory;
+                                        });
 
   InitializeValidReferenceTable(L);
   InitializeKeepAliveTable(L);
@@ -134,6 +140,26 @@ void Lua::LuaState::LoadSafeLibs(){
 Lua::LuaObject Lua::LuaState::NewTable(){
   Lua::NewTable(state());
   return Lua::LuaObject(state());
+}
+
+void Lua::LuaState::SetGarbageCollectPause(int value){
+  lua_gc(shared_L.get(), LUA_GCSETPAUSE, value);
+}
+
+int Lua::LuaState::GetGarbageCollectPause(){
+  auto value = lua_gc(shared_L.get(), LUA_GCSETPAUSE, 200);
+  lua_gc(shared_L.get(), LUA_GCSETPAUSE, value);
+  return value;
+}
+
+void Lua::LuaState::SetGarbageCollectMultiplier(int value){
+  lua_gc(shared_L.get(), LUA_GCSETSTEPMUL, std::max(100, value));
+}
+
+int Lua::LuaState::GetGarbageCollectMultiplier(){
+  auto value = lua_gc(shared_L.get(), LUA_GCSETSTEPMUL, 200);
+  lua_gc(shared_L.get(), LUA_GCSETSTEPMUL, value);
+  return value;
 }
 
 void* Lua::limited_memory_alloc(void* ud, void* ptr, size_t osize, size_t nsize){

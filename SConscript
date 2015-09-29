@@ -8,10 +8,8 @@ import SCons.Errors
 
 Import('env')
 
-if ('-std=c++11' not in env['CXXFLAGS'] and
-    '-std=c++11' not in env['CCFLAGS'] and
-    '-std=c++0x' not in env['CXXFLAGS'] and
-    '-std=c++0x' not in env['CCFLAGS']):
+if not (set(['-std=c++11', '-std=c++0x']) &
+        set(env['CXXFLAGS'] + env['CCFLAGS'] + env['CPPFLAGS'])):
     raise SCons.Errors.UserError('lua_bindings must be compiled with C++11\n' +
                                  'Please add -std=c++11 to CCFLAGS or CXXFLAGS.')
 

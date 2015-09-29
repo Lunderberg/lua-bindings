@@ -30,7 +30,11 @@ namespace Lua{
         throw LuaExecuteError(error_message);
       }
     }
-    return Lua::Read<RetVal>(L, top - nresults);
+    //return Lua::Read<RetVal>(L, top - nresults);
+    //return Lua::Read<RetVal>(L, top + nresults);
+    //return Lua::Read<RetVal>(L, -top - nresults);
+    return Lua::Read<RetVal>(L, lua_gettop(L) - (nresults - 1));
+
   }
 }
 

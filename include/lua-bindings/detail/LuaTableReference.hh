@@ -22,7 +22,7 @@ namespace Lua{
       I can't figure out a way around this.
      */
     template<typename V>
-    LuaTableReference& Set(V value);
+    LuaTableReference& Set(V&& value);
 
     template<typename RetVal>
     RetVal Cast();
@@ -53,9 +53,9 @@ Lua::LuaTableReference<T>& Lua::LuaTableReference<T>::operator=(V&& value){
 
 template<typename T>
 template<typename V>
-Lua::LuaTableReference<T>& Lua::LuaTableReference<T>::Set(V value){
+Lua::LuaTableReference<T>& Lua::LuaTableReference<T>::Set(V&& value){
   Push(L, key);
-  Push(L, value);
+  Push(L, std::forward<V>(value));
 
   lua_settable(L, table_stack_pos);
 

@@ -183,6 +183,37 @@ namespace Lua{
       return LuaCoroutine(shared_L);
     }
 
+    //! Calls the Lua garbage collector
+    void GarbageCollect(){
+      lua_gc(shared_L.get(), LUA_GCCOLLECT, 0);
+    }
+
+    //! Sets the pause ratio of the Lua garbage collector.
+    /*! This is described in http://www.lua.org/manual/5.3/manual.html#2.5
+
+      The value given is interpreted as a percentage.
+      This is the ratio by which the memory usage must increase
+      before the garbage collector can run again.
+      If set to 100, the garbage collector could run again immediately.
+     */
+    void SetGarbageCollectPause(int value);
+
+    //! Gets the pause ratio of the Lua garbage collector.
+    int GetGarbageCollectPause();
+
+    //! Sets the collect multiplier of the Lua garbage collector.
+    /*! This is described in http://www.lua.org/manual/5.3/manual.html#2.5
+
+      The value given is interpreted as a percentage.
+      I don't fully understand this value.
+      The higher the value, the more aggressively the garbage collector will prune.
+      It should never be set lower than 100.
+     */
+    void SetGarbageCollectMultiplier(int value);
+
+    //! Gets the collect multiplier of the Lua garbage collector.
+    int GetGarbageCollectMultiplier();
+
   private:
     //! Calls a function from the stack.
     /*! Assumes that the Lua stack has a function on top.
@@ -194,14 +225,16 @@ namespace Lua{
       return Lua::CallFromStack<RetVal>(state(), std::forward<Params>(params)...);
     }
 
-
     //! The total memory used and allowed
     /*! Keeps track of the memory allocated by the Lua virtual machine.
       memory[0] is the size in bytes that have been allocated.
       memory[1] is the maximum size in bytes.
       If memory[1] is 0, there is no restriction.
+
+      It is deallocated when the last shared pointer to the lua_State passes away.
+      It should not be deleted in the destructor.
      */
-    unsigned long memory[2];
+    unsigned long* memory;
 
     //! The internal lua state.
     std::shared_ptr<lua_State> shared_L;

@@ -24,6 +24,8 @@ namespace Lua{
     LuaCallable_CppFunction(std::function<RetVal(Params...)> function) :
       func(function) { }
 
+    ~LuaCallable_CppFunction(){ }
+
     //! Calls the wrapped function.
     /*! Uses the indices trick to number each parameter.
       From there, reads each argument from the stack and calls the function.
