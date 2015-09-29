@@ -41,6 +41,10 @@ namespace Lua{
       return call_helper_function(build_indices<sizeof...(Params)>(), func, L);
     }
 
+    std::function<RetVal(Params...)> GetFunc(){
+      return func;
+    }
+
   private:
     //! The function being wrapped.
     std::function<RetVal(Params...)> func;

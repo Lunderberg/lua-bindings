@@ -362,6 +362,18 @@ namespace Lua{
   template<typename RetVal, typename... Params, bool allow_references>
   std::function<RetVal(Params...)> ReadDefaultType<std::function<RetVal(Params...)>, allow_references >
   ::Read(lua_State* L, int index){
+    // If the value is a std::function previously exposed by C++,
+    //   return it directly.
+    void* as_userdata = lua_touserdata(L, index);
+    if(as_userdata){
+      Lua::LuaCallable* callable = *static_cast<Lua::LuaCallable**>(as_userdata);
+      auto callable_cppfunction = dynamic_cast<LuaCallable_CppFunction<RetVal(Params...)>* >(callable);
+      if(callable_cppfunction){
+        return callable_cppfunction->GetFunc();
+      }
+    }
+
+    // Otherwise, wrap the Lua function to be called.
     auto wrapper = std::make_shared<Lua::FunctionWrapper>(ExtractSharedPtr(L), index);
     return [wrapper](Params&&... params){
       return wrapper->Call<RetVal>(std::forward<Params>(params)...);
