@@ -24,4 +24,7 @@ LIBRARY_INCLUDE_DIRS = include lua-5.3.0/src
 LIBRARY_PRIVATE_INCLUDE_DIRS =
 
 # Compiler flag overrides for src files within this library.
-$(LIBRARY):
+ifeq ($(SYSTEM),linux)
+  $(LIBRARY): ALL_CPPFLAGS += -DLUA_USE_LINUX
+  $(LIBRARY): SHARED_LDLIBS += -Wl,-E -ldl -lreadline
+endif
