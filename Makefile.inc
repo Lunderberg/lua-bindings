@@ -26,5 +26,10 @@ LIBRARY_PRIVATE_INCLUDE_DIRS =
 # Compiler flag overrides for src files within this library.
 ifeq ($(SYSTEM),linux)
   $(LIBRARY): ALL_CPPFLAGS += -DLUA_USE_LINUX
-  $(LIBRARY): SHARED_LDLIBS += -Wl,-E -ldl -lreadline
+
+  ifeq ($(LINK_AGAINST_STATIC),1)
+    ALL_LDLIBS += -ldl -lreadline
+  else
+    $(LIBRARY): SHARED_LDLIBS += -Wl,-E -ldl -lreadline
+  endif
 endif
