@@ -113,7 +113,7 @@ namespace Lua{
              typename std::enable_if<std::is_same<R, void>::value, int>::type = 0
              >
     int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
-      func(obj, Read<Params>(L, Indices+1)...);
+      func(obj, Read<Params, true>(L, Indices+1)...);
       return 0;
     }
 #pragma GCC diagnostic pop
