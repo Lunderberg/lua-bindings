@@ -101,8 +101,8 @@ namespace Lua{
       Will fail at compile time otherwise.
     */
     template<typename T>
-    void SetGlobal(const char* name, T t){
-      Push(state(), t);
+    void SetGlobal(const char* name, T&& t){
+      Push<true>(state(), std::forward<T>(t));
       lua_setglobal(state(), name);
     }
 

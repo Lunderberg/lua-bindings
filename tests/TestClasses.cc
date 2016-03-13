@@ -124,6 +124,25 @@ TEST(LuaClasses, DestructorCount_PassReferenceToLua){
   EXPECT_EQ(destructor_called, 1);
 }
 
+TEST(LuaClasses, DestructorCount_GlobalReferenceInLua){
+  constructor_called = 0;
+  destructor_called = 0;
+  {
+    Lua::LuaState L;
+    InitializeClass(L);
+    TestClass var;
+    var.SetX(42);
+    L.SetGlobal("var",std::ref(var));
+    int x = L.LoadString<int>("return var:GetX()");
+    EXPECT_EQ(x, 42);
+
+    L.LoadString("var:SetX(17)");
+    EXPECT_EQ(var.GetX(), 17);
+  }
+  EXPECT_EQ(constructor_called, 1);
+  EXPECT_EQ(destructor_called, 1);
+}
+
 TEST(LuaClasses, DestructorCount_PassSharedPointerToLua){
   constructor_called = 0;
   destructor_called = 0;
