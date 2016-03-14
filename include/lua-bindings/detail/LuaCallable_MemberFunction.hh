@@ -14,6 +14,7 @@
 #include "LuaObject.hh"
 #include "LuaPointerType.hh"
 #include "LuaPush.hh"
+#include "LuaRead.hh"
 #include "LuaReferenceSet.hh"
 #include "LuaRegistryNames.hh"
 #include "TemplateUtils.hh"
@@ -44,14 +45,8 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      void* storage = luaL_testudata(L, 1, class_registry_entry<ClassType>::get().c_str());
-      lua_remove(L, 1);
-
-      if(!storage){
-        throw LuaIncorrectUserData("Called method using incorrect type");
-      }
-
-      auto ptr = static_cast<VariablePointer<ClassType>*>(storage);
+      auto ptr = ReadVariablePointer<ClassType>(L, 1);
+      lua_remove(L,1);
 
       switch(ptr->type){
       case PointerType::shared_ptr:

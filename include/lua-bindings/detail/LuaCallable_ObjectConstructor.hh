@@ -17,6 +17,7 @@
 namespace Lua{
   template<typename T>
   class LuaCallable_ObjectConstructor;
+
   template<typename ClassType, typename... Params>
   class LuaCallable_ObjectConstructor<ClassType(Params...)> : public LuaCallable {
   public:
@@ -24,6 +25,7 @@ namespace Lua{
     virtual int call(lua_State* L){
       return call_constructor_helper(build_indices<sizeof...(Params)>(), L);
     }
+
   private:
     template<int... Indices>
     static int call_constructor_helper(indices<Indices...>, lua_State* L){

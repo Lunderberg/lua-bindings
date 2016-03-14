@@ -43,3 +43,8 @@ int Lua::LuaObject::Length() const{
 int Lua::LuaObject::StackPos() const{
   return stack_pos;
 }
+
+bool Lua::LuaObject::operator==(const Lua::LuaObject& other) const {
+  return ((L == other.L) &&
+          lua_rawequal(L, stack_pos, other.stack_pos));
+}

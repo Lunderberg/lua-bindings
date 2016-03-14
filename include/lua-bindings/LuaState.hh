@@ -102,7 +102,7 @@ namespace Lua{
     */
     template<typename T>
     void SetGlobal(const char* name, T&& t){
-      Push<true>(state(), std::forward<T>(t));
+      Push(state(), std::forward<T>(t));
       lua_setglobal(state(), name);
     }
 
@@ -166,9 +166,9 @@ namespace Lua{
         "ConstructorName" is the name of the Lua function which exposes this contructor.
         "Method1" is the name of the method as it is exposed to Lua.
      */
-    template<typename ClassType>
-    Lua::MakeClass<ClassType> MakeClass(std::string name){
-      return Lua::MakeClass<ClassType>(state(), name);
+    template<typename ClassType, typename BaseClass=void>
+    Lua::MakeClass<ClassType, BaseClass> MakeClass(std::string name){
+      return Lua::MakeClass<ClassType, BaseClass>(state(), name);
     }
 
     //! Returns a new coroutine

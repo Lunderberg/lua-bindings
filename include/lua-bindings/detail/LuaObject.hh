@@ -54,6 +54,8 @@ namespace Lua{
     LuaTableReference<std::string> operator[](std::string key);
     LuaTableReference<int> operator[](int key);
 
+    bool operator==(const LuaObject& other) const;
+
   private:
     friend class LuaState;
 

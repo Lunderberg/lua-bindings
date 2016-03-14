@@ -41,13 +41,13 @@ namespace{
   int value_func(TestClass var){
     return 6*var.GetX();
   }
-}
 
-void InitializeClass(Lua::LuaState& L){
-  L.MakeClass<TestClass>("TestClass")
-    .AddConstructor<>("make_TestClass")
-    .AddMethod("GetX", &TestClass::GetX)
-    .AddMethod("SetX", &TestClass::SetX);
+  void InitializeClass(Lua::LuaState& L){
+    L.MakeClass<TestClass>("TestClass")
+      .AddConstructor<>("make_TestClass")
+      .AddMethod("GetX", &TestClass::GetX)
+      .AddMethod("SetX", &TestClass::SetX);
+  }
 }
 
 TEST(LuaClasses, GetterSetter){
@@ -118,25 +118,6 @@ TEST(LuaClasses, DestructorCount_PassReferenceToLua){
                  "end");
     auto x = L.Call<int>("accepts_TestClass", std::ref(var));
     EXPECT_EQ(x, 17);
-    EXPECT_EQ(var.GetX(), 17);
-  }
-  EXPECT_EQ(constructor_called, 1);
-  EXPECT_EQ(destructor_called, 1);
-}
-
-TEST(LuaClasses, DestructorCount_GlobalReferenceInLua){
-  constructor_called = 0;
-  destructor_called = 0;
-  {
-    Lua::LuaState L;
-    InitializeClass(L);
-    TestClass var;
-    var.SetX(42);
-    L.SetGlobal("var",std::ref(var));
-    int x = L.LoadString<int>("return var:GetX()");
-    EXPECT_EQ(x, 42);
-
-    L.LoadString("var:SetX(17)");
     EXPECT_EQ(var.GetX(), 17);
   }
   EXPECT_EQ(constructor_called, 1);

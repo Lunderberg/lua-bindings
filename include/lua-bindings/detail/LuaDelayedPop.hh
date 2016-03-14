@@ -20,6 +20,7 @@ public:
   }
 
   void SetNumPop(int num) { num_to_pop = num; }
+  int GetNumPop() const { return num_to_pop; }
 private:
   lua_State* L;
   int num_to_pop;

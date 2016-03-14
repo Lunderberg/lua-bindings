@@ -25,11 +25,13 @@ namespace Lua{
     LuaTableReference& Set(V&& value);
 
     template<typename RetVal>
-    RetVal Cast();
+    RetVal Cast() const;
 
-    LuaObject Get();
+    LuaObject Get() const;
 
-    bool Exists();
+    bool Exists() const;
+
+    lua_State* GetCState() const { return L; }
 
   private:
     lua_State* L;
@@ -64,23 +66,48 @@ Lua::LuaTableReference<T>& Lua::LuaTableReference<T>::Set(V&& value){
 
 template<typename T>
 template<typename RetVal>
-RetVal Lua::LuaTableReference<T>::Cast(){
+RetVal Lua::LuaTableReference<T>::Cast() const {
   LuaDelayedPop delayed(L, 1);
   return Get().Cast<RetVal>();
 }
 
 template<typename T>
-Lua::LuaObject Lua::LuaTableReference<T>::Get(){
+Lua::LuaObject Lua::LuaTableReference<T>::Get() const {
   Push(L, key);
   lua_gettable(L, table_stack_pos);
   return LuaObject(L, -1);
 }
 
 template<typename T>
-bool Lua::LuaTableReference<T>::Exists(){
+bool Lua::LuaTableReference<T>::Exists() const {
   LuaDelayedPop delayed(L, 1);
   auto obj = Get();
   return !obj.IsNil();
+}
+
+template<typename T, typename U>
+bool operator==(const Lua::LuaTableReference<T>& a, const Lua::LuaTableReference<U>& b) {
+  Lua::LuaObject a_obj = a.Get();
+  LuaDelayedPop a_delay(a.GetCState(), 1);
+
+  Lua::LuaObject b_obj = b.Get();
+  LuaDelayedPop b_delay(b.GetCState(), 1);
+
+  return a_obj == b_obj;
+}
+
+template<typename T>
+bool operator==(const Lua::LuaTableReference<T>& a, const Lua::LuaObject& b) {
+  lua_State* L = a.GetCState();
+
+  Lua::LuaObject table_object = a.Get();
+  LuaDelayedPop delayed(L, 1);
+  return table_object == b;
+}
+
+template<typename T>
+bool operator==(const Lua::LuaObject& a, const Lua::LuaTableReference<T>& b) {
+  return b==a;
 }
 
 

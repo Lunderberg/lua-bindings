@@ -185,23 +185,51 @@ namespace Lua{
   //! Helper method, for grabbing a pointer from the stack.
   template<typename T>
   VariablePointer<T>* ReadVariablePointer(lua_State* L, int index){
-    if(!lua_isuserdata(L, index)){
+    void* storage = lua_touserdata(L, index);
+
+    if(!storage){
       throw LuaInvalidStackContents("Value was not userdata");
     }
 
-    void* storage = luaL_testudata(L, index, class_registry_entry<T>::get().c_str());
+    // Grab the correct metatables out of the registry.
+    LuaObject registry(L, LUA_REGISTRYINDEX);
+    LuaObject class_metatable = registry[class_registry_entry<T>::get()].Get();
+    LuaObject class_metatable_nonconst = registry[class_registry_entry<T,true>::get()].Get();
 
-    // If 'const' is requested, can also return a non-const version.
-    // This will not, however, cause the non-const request to return a const version.
-    // The std::is_same check is not required, but allows this conditional
-    //   to be optimized out when requesting a non-const member.
-    if(!std::is_same<T, typename std::remove_const<T>::type>::value &&
-       !storage){
-      storage = luaL_testudata(L, index,
-                               class_registry_entry<typename std::remove_const<T>::type>::get().c_str());
+    // Grab the class index.  We will compare against these.
+    LuaObject class_index = class_metatable["__index"].Get();
+    LuaObject class_index_nonconst = class_metatable_nonconst["__index"].Get();
+    LuaDelayedPop delay(L, 4);
+
+    bool is_correct_class = false;
+    int curr_index = index;
+
+    while(!is_correct_class) {
+      bool has_metatable = lua_getmetatable(L, curr_index);
+      if(!has_metatable){
+        break;
+      }
+      delay.SetNumPop(delay.GetNumPop() + 1);
+      LuaObject obj_metatable(L, -1);
+
+      LuaObject obj_index = obj_metatable["__index"].Get();
+      delay.SetNumPop(delay.GetNumPop() + 1);
+
+      is_correct_class = obj_index == class_index;
+
+      // If 'const' is requested, can also return a non-const version.
+      // This will not, however, cause the non-const request to return a const version.
+      // The std::is_same check is not required, but allows this conditional
+      //   to be optimized out when requesting a non-const member.
+      if(!std::is_same<T, typename std::remove_const<T>::type>::value &&
+         !is_correct_class){
+        is_correct_class = obj_index == class_index_nonconst;
+      }
+
+      curr_index = obj_index.StackPos();
     }
 
-    if(!storage){
+    if(!is_correct_class){
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
     }
 

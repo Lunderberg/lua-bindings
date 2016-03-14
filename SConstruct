@@ -32,7 +32,6 @@ if ARGUMENTS.get('PROFILE'):
 
 env.Append(CXXFLAGS=['-std=c++11'])
 env.Append(CCFLAGS=['-Wall','-Wextra','-g'])
-env.Append(CCFLAGS=['-O3'])
 
 env.Append(CPPPATH=[Dir('include')])
 lua_bindings = env.SConscript('SConscript','env')
