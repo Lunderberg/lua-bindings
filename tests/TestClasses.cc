@@ -61,6 +61,17 @@ TEST(LuaClasses, GetterSetter){
   EXPECT_EQ(L.Call<int>("getter_setter"), 17);
 }
 
+TEST(LuaClasses, ConstGetter){
+  Lua::LuaState L;
+  InitializeClass(L);
+  L.LoadString("function const_getter(var)"
+               "  return var:GetX() "
+               "end");
+
+  TestClass myclass;
+  EXPECT_EQ(L.Call<int>("const_getter",std::cref(myclass)), 0);
+}
+
 TEST(LuaClasses, GetterSetter_LoadSafeLibs){
   Lua::LuaState L;
   L.LoadSafeLibs();

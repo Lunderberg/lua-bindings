@@ -38,8 +38,14 @@ namespace Lua{
   template<typename ClassType, typename RetVal, typename... Params>
   class LuaCallable_MemberFunction<ClassType, RetVal(Params...)> : public LuaCallable {
   public:
+    // Const types cannot have non-const member functions called.
+    template<typename T = ClassType,
+             typename U = typename std::enable_if<!std::is_const<T>::value>::type>
     LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...)) : func(std::mem_fn(func)) { }
+
+    // Either const or non-const types can have const member functions called.
     LuaCallable_MemberFunction(RetVal (ClassType::*func)(Params...) const ) : func(std::mem_fn(func)) { }
+
     virtual int call(lua_State* L){
       if(lua_gettop(L) != sizeof...(Params) + 1){
         throw LuaCppCallError("Incorrect number of arguments passed");

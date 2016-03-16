@@ -105,6 +105,7 @@ namespace Lua{
 
     template<typename RetVal, typename... Params>
     MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...) const){
+      const_index[method_name] = new LuaCallable_MemberFunction<const ClassType, RetVal(Params...)>(func);
       index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
       return *this;
     }
