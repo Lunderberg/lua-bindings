@@ -36,77 +36,22 @@ namespace Lua{
   template<typename ClassType, typename BaseClass=void>
   class MakeClass {
   public:
-    MakeClass(lua_State* L, std::string name) : L(L), name(name), metatable(L), index(L),
-                                                const_metatable(L), const_index(L) {
-      {
-        luaL_newmetatable(L, name.c_str());
-        metatable = LuaObject(L);
-        metatable["__metatable"] = "Access restricted";
-        metatable["__gc"] = VariablePointer<ClassType>::garbage_collect;
-
-        NewTable(L);
-        index = LuaObject(L);
-      }
-
-      {
-        const_name = "const." + name;
-        luaL_newmetatable(L, const_name.c_str());
-        const_metatable = LuaObject(L);
-        const_metatable["__metatable"] = "Access restricted";
-        const_metatable["__gc"] = VariablePointer<const ClassType>::garbage_collect;
-
-        NewTable(L);
-        const_index = LuaObject(L);
-      }
-    }
-    ~MakeClass(){
-      LuaObject registry(L, LUA_REGISTRYINDEX);
-
-      {
-        if(!std::is_same<BaseClass, void>::value){
-          NewTable(L);
-          LuaObject index_metatable(L);
-          {
-            LuaObject base_metatable = registry[class_registry_entry<const BaseClass>::get()].Get();
-            LuaDelayedPop delayed(L,1);
-            index_metatable["__index"].Set(base_metatable["__index"]);
-          }
-          index_metatable["__metatable"] = "Access restricted";
-          lua_setmetatable(L, const_index.StackPos());
-        }
-
-        const_metatable["__index"] = const_index;
-        registry[class_registry_entry<const ClassType>::get()] = const_metatable;
-      }
-
-      {
-        if(!std::is_same<BaseClass, void>::value){
-          NewTable(L);
-          LuaObject index_metatable(L);
-          {
-            LuaObject base_metatable = registry[class_registry_entry<BaseClass>::get()].Get();
-            LuaDelayedPop delayed(L,1);
-            index_metatable["__index"].Set(base_metatable["__index"]);
-          }
-          index_metatable["__metatable"] = "Access restricted";
-          lua_setmetatable(L, index.StackPos());
-        }
-
-        metatable["__index"] = index;
-        registry[class_registry_entry<ClassType>::get()] = metatable;
-      }
-    }
+    MakeClass(lua_State* L, std::string name)
+      : L(L), name(name),
+        nonconst_index(L,name),
+        const_index(L,"const." + name) { }
+    ~MakeClass(){ }
 
     template<typename RetVal, typename... Params>
     MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...)){
-      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
+      nonconst_index.AddMethod(method_name, func);
       return *this;
     }
 
     template<typename RetVal, typename... Params>
     MakeClass& AddMethod(std::string method_name, RetVal (ClassType::*func)(Params...) const){
-      const_index[method_name] = new LuaCallable_MemberFunction<const ClassType, RetVal(Params...)>(func);
-      index[method_name] = new LuaCallable_MemberFunction<ClassType, RetVal(Params...)>(func);
+      const_index.AddMethod(method_name, func);
+      nonconst_index.AddMethod(method_name, func);
       return *this;
     }
 
@@ -122,15 +67,67 @@ namespace Lua{
     }
 
   private:
+
+    template<typename IClass, typename IBase>
+    class ClassIndexGen {
+    public:
+      ClassIndexGen(lua_State* L, std::string name)
+        : L(L), name(name), metatable(L), index(L) {
+        luaL_newmetatable(L, name.c_str());
+        metatable = LuaObject(L);
+        metatable["__metatable"] = "Access restricted";
+        metatable["__gc"] = VariablePointer<IClass>::garbage_collect;
+
+        NewTable(L);
+        index = LuaObject(L);
+      }
+
+      ~ClassIndexGen() {
+        LuaObject registry(L, LUA_REGISTRYINDEX);
+
+        if(!std::is_same<BaseClass, void>::value){
+          NewTable(L);
+          LuaObject index_metatable(L);
+          {
+            LuaObject base_metatable = registry[class_registry_entry<IBase>::get()].Get();
+            LuaDelayedPop delayed(L,1);
+            index_metatable["__index"].Set(base_metatable["__index"]);
+          }
+          index_metatable["__metatable"] = "Access restricted";
+          lua_setmetatable(L, index.StackPos());
+        }
+
+        metatable["__index"] = index;
+        registry[class_registry_entry<IClass>::get()] = metatable;
+      }
+
+      // Disable adding a non-const method to a const index.
+      template<typename RetVal, typename... Params,
+               typename T = IClass,
+               typename U = typename std::enable_if<!std::is_const<T>::value>::type >
+      void AddMethod(std::string method_name, RetVal (IClass::*func)(Params...)){
+        index[method_name] = new LuaCallable_MemberFunction<IClass, RetVal(Params...)>(func);
+      }
+
+      // Can always add a const method.
+      template<typename RetVal, typename... Params>
+      void AddMethod(std::string method_name, RetVal (IClass::*func)(Params...) const){
+        index[method_name] = new LuaCallable_MemberFunction<IClass, RetVal(Params...)>(func);
+      }
+
+    private:
+      lua_State* L;
+      std::string name;
+      LuaObject metatable;
+      LuaObject index;
+    };
+
+
     lua_State* L;
-
     std::string name;
-    LuaObject metatable;
-    LuaObject index;
 
-    std::string const_name;
-    LuaObject const_metatable;
-    LuaObject const_index;
+    ClassIndexGen<ClassType, BaseClass> nonconst_index;
+    ClassIndexGen<const ClassType, const BaseClass> const_index;
   };
 }
 
