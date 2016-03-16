@@ -4,10 +4,10 @@
 #include <iostream>
 #include <memory>
 
+#include <lua.hpp>
+
 #include "LuaExceptions.hh"
 #include "LuaReferenceSet.hh"
-
-class lua_State;
 
 namespace Lua{
   //! Base class for C++ objects being held by Lua.
@@ -27,16 +27,18 @@ namespace Lua{
     virtual std::weak_ptr<T> get_weak() = 0;
     virtual T* get_c(lua_State* L) = 0;
 
-    //! Templated function for deleting C++ objects owned by Lua.
+    //! Cleanup function for VariablePointer<T>
     /*!
-      This function is attached as a lua_cclosure with this function,
-      and the pointer itself.
-      The cclosure is set as the "__gc" method for the object,
-        guaranteeing cleanup.
-    */
-    static void delete_voidp(void* storage) {
+      For use as the "__gc" function in a metatable.
+      Assuming that the value being deleted is userdata that points to VariablePointer,
+        call the destructor.
+     */
+    static int garbage_collect(lua_State* L) {
+      void* storage = lua_touserdata(L, 1);
       VariablePointer* ptr = *static_cast<VariablePointer**>(storage);
       ptr->~VariablePointer();
+
+      return 0;
     }
   };
 

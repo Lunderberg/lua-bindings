@@ -42,13 +42,7 @@ namespace Lua{
         luaL_newmetatable(L, name.c_str());
         metatable = LuaObject(L);
         metatable["__metatable"] = "Access restricted";
-
-        // Store a deletion function pointer that can be found from the cclosure.
-        void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-        *static_cast<void(**)(void*)>(storage) = VariablePointer<ClassType>::delete_voidp;
-        lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
-        LuaObject gc(L);
-        metatable["__gc"] = gc;
+        metatable["__gc"] = VariablePointer<ClassType>::garbage_collect;
 
         NewTable(L);
         index = LuaObject(L);
@@ -59,13 +53,7 @@ namespace Lua{
         luaL_newmetatable(L, const_name.c_str());
         const_metatable = LuaObject(L);
         const_metatable["__metatable"] = "Access restricted";
-
-        // Store a deletion function pointer that can be found from the cclosure.
-        void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-        *static_cast<void(**)(void*)>(storage) = VariablePointer<const ClassType>::delete_voidp;
-        lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
-        LuaObject gc(L);
-        const_metatable["__gc"] = gc;
+        const_metatable["__gc"] = VariablePointer<const ClassType>::garbage_collect;
 
         NewTable(L);
         const_index = LuaObject(L);
@@ -83,7 +71,7 @@ namespace Lua{
             LuaDelayedPop delayed(L,1);
             index_metatable["__index"].Set(base_metatable["__index"]);
           }
-          //index_metatable["__metatable"] = "Access restricted";
+          index_metatable["__metatable"] = "Access restricted";
           lua_setmetatable(L, const_index.StackPos());
         }
 
@@ -100,7 +88,7 @@ namespace Lua{
             LuaDelayedPop delayed(L,1);
             index_metatable["__index"].Set(base_metatable["__index"]);
           }
-          //index_metatable["__metatable"] = "Access restricted";
+          index_metatable["__metatable"] = "Access restricted";
           lua_setmetatable(L, index.StackPos());
         }
 
