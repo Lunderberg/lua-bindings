@@ -7,6 +7,7 @@ class lua_State;
 
 namespace Lua{
   void InitializeValidReferenceTable(lua_State* L);
+  unsigned long GenerateReferenceID(lua_State* L);
   bool IsValidReference(lua_State* L, unsigned long reference_id);
 
   class PreserveValidReferences{

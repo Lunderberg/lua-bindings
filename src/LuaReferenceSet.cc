@@ -50,6 +50,19 @@ bool Lua::IsValidReference(lua_State* L, unsigned long reference_id){
   }
 }
 
+unsigned long Lua::GenerateReferenceID(lua_State* L) {
+  LuaObject registry(L, LUA_REGISTRYINDEX);
+  auto next_index_ref = registry[cpp_reference_counter];
+  int next_index = next_index_ref.Cast<int>();
+  next_index_ref = next_index + 1;
+
+  void* set_voidp = registry[cpp_valid_reference_set].Cast<void*>();
+  std::set<unsigned long>* reference_set = static_cast<std::set<unsigned long>*>(set_voidp);
+  reference_set->insert(next_index);
+
+  return next_index;
+}
+
 Lua::PreserveValidReferences::PreserveValidReferences(lua_State* L)
   : L(L) {
   LuaObject registry(L, LUA_REGISTRYINDEX);

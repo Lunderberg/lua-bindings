@@ -18,40 +18,6 @@
 int garbage_collect_arbitrary_object(lua_State* L);
 
 namespace Lua{
-
-  //! Templated function for deleting C++ objects owned by Lua.
-  /*! Unfortunately, "__gc" functions must be directly callable,
-      rather than being objects with a "__call" method attached.
-    Therefore, I cannot attach a LuaCallable as I would elsewhere.
-
-    This function is templated on the class to be deleted.
-    It is then attached as a lua_cclosure with this function,
-      and the pointer itself.
-   */
-  template<typename T>
-  void delete_from_void_pointer(void* storage){
-    auto ptr = static_cast<VariablePointer<T>*>(storage);
-
-    switch(ptr->type){
-    case PointerType::shared_ptr:
-      {
-        ptr->pointers.shared_ptr.~shared_ptr();
-      }
-      break;
-    case PointerType::weak_ptr:
-      {
-        ptr->pointers.weak_ptr.~weak_ptr();
-      }
-      break;
-    case PointerType::c_ptr:
-      break;
-    default:
-      // Unknown pointer type, should never reach here.
-      assert(false);
-    }
-
-  }
-
   //! Utility class for exporting C++ classes into Lua.
   /*!Returns a proxy object that can be used to make a class.
     Usage:
@@ -75,11 +41,11 @@ namespace Lua{
       {
         luaL_newmetatable(L, name.c_str());
         metatable = LuaObject(L);
-        //metatable["__metatable"] = "Access restricted";
+        metatable["__metatable"] = "Access restricted";
 
         // Store a deletion function pointer that can be found from the cclosure.
         void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-        *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<ClassType>;
+        *static_cast<void(**)(void*)>(storage) = VariablePointer<ClassType>::delete_voidp;
         lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
         LuaObject gc(L);
         metatable["__gc"] = gc;
@@ -92,11 +58,11 @@ namespace Lua{
         const_name = "const." + name;
         luaL_newmetatable(L, const_name.c_str());
         const_metatable = LuaObject(L);
-        //const_metatable["__metatable"] = "Access restricted";
+        const_metatable["__metatable"] = "Access restricted";
 
         // Store a deletion function pointer that can be found from the cclosure.
         void* storage = lua_newuserdata(L, sizeof(void(**)(void*)));
-        *static_cast<void(**)(void*)>(storage) = delete_from_void_pointer<const ClassType>;
+        *static_cast<void(**)(void*)>(storage) = VariablePointer<const ClassType>::delete_voidp;
         lua_pushcclosure(L, garbage_collect_arbitrary_object, 1);
         LuaObject gc(L);
         const_metatable["__gc"] = gc;

@@ -233,7 +233,7 @@ namespace Lua{
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
     }
 
-    return static_cast<VariablePointer<T>*>(storage);
+    return *static_cast<VariablePointer<T>**>(storage);
   }
 
   //! Read from the stack, by value.
@@ -252,68 +252,21 @@ namespace Lua{
   template<typename T, bool allow_references>
   std::shared_ptr<T> ReadDefaultType<std::shared_ptr<T>, allow_references>::Read(lua_State* L, int index){
     auto ptr = ReadVariablePointer<T>(L, index);
-    if(ptr->type == PointerType::shared_ptr){
-      return ptr->pointers.shared_ptr;
-
-    } else if(ptr->type == PointerType::weak_ptr) {
-      auto output = ptr->pointers.weak_ptr.lock();
-      if(output){
-        return output;
-      } else {
-        throw LuaExpiredWeakPointer("Weak_ptr returned was no longer valid");
-      }
-
-    } else {
-      throw LuaIncorrectPointerType("Variable requested was not a shared_ptr");
-    }
-
+    return ptr->get_shared();
   }
 
   //! Read from the stack, by weak_ptr
   template<typename T, bool allow_references>
   std::weak_ptr<T> ReadDefaultType<std::weak_ptr<T>, allow_references >::Read(lua_State* L, int index){
     auto ptr = ReadVariablePointer<T>(L, index);
-    if(ptr->type == PointerType::weak_ptr){
-      return ptr->pointers.weak_ptr;
-    } else if (ptr->type == PointerType::shared_ptr){
-      return ptr->pointers.shared_ptr;
-    } else {
-      throw LuaIncorrectPointerType("Variable requested was not convertible to a weak_ptr");
-    }
-
+    return ptr->get_weak();
   }
 
   //! Read from the stack, by c-style pointer.
   template<typename T, bool allow_references>
   T* ReadDefaultType<T*, allow_references>::Read(lua_State* L, int index){
     auto ptr = ReadVariablePointer<T>(L, index);
-    switch(ptr->type){
-    case PointerType::shared_ptr:
-      return ptr->pointers.shared_ptr.get();
-
-    case PointerType::weak_ptr:
-    {
-      auto lock = ptr->pointers.weak_ptr.lock();
-      if(lock){
-        return lock.get();
-      } else {
-        throw LuaExpiredWeakPointer("Weak_ptr returned was no longer valid.");
-      }
-    }
-
-    case PointerType::c_ptr:
-    {
-      if(IsValidReference(L, ptr->reference_id)){
-        return ptr->pointers.c_ptr;
-      } else {
-        throw LuaExpiredReference("C++ reference was no longer valid");
-      }
-    }
-
-    default:
-      // Should never reach here.
-      assert(false);
-    }
+    return ptr->get_c(L);
   }
 
   template<typename T, bool allow_references>

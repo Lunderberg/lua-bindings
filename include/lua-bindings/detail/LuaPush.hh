@@ -168,14 +168,16 @@ void Lua::PushValueDirect(lua_State* L, std::shared_ptr<T> t){
     throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
   }
 
-  int memsize = sizeof(VariablePointer<T>);
-  void* userdata = lua_newuserdata(L, memsize );
-  std::memset(userdata, 0, memsize);
 
-  auto ptr = static_cast<VariablePointer<T>*>(userdata);
-  ptr->type = PointerType::shared_ptr;
-  ptr->pointers.shared_ptr = t;
-  ptr->reference_id = 0;
+  // Allocate memory held by lua to store, construct into that location.
+  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableSharedPointer<T>);
+  void* userdata = lua_newuserdata(L, memsize);
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  VariableSharedPointer<T>* ptr = new(storage) VariableSharedPointer<T>(t);
+
+  // Can't just store the VariableWeakPointer<T>*,
+  //   because we need to be able to cast from void* to VariablePointer<T>*.
+  *static_cast<VariablePointer<T>**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }
@@ -188,14 +190,15 @@ void Lua::PushValueDirect(lua_State* L, std::weak_ptr<T> t){
     throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
   }
 
-  int memsize = sizeof(VariablePointer<T>);
-  void* userdata = lua_newuserdata(L, memsize );
-  std::memset(userdata, 0, memsize);
+  // Allocate memory held by lua to store, construct into that location.
+  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableWeakPointer<T>);
+  void* userdata = lua_newuserdata(L, memsize);
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  VariableWeakPointer<T>* ptr = new(storage) VariableWeakPointer<T>(t);
 
-  auto ptr = static_cast<VariablePointer<T>*>(userdata);
-  ptr->type = PointerType::weak_ptr;
-  ptr->pointers.weak_ptr = t;
-  ptr->reference_id = 0;
+  // Can't just store the VariableWeakPointer<T>*,
+  //   because we need to be able to cast from void* to VariablePointer<T>*.
+  *static_cast<VariablePointer<T>**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }
@@ -211,27 +214,20 @@ Lua::PushValueDirect(lua_State* L, T* t, bool is_reference){
     throw LuaClassNotRegistered("The class requested was not registered with the LuaState");
   }
 
-  int memsize = sizeof(VariablePointer<T>);
-  void* userdata = lua_newuserdata(L, memsize );
-  std::memset(userdata, 0, memsize);
-
-  auto ptr = static_cast<VariablePointer<T>*>(userdata);
-  ptr->type = PointerType::c_ptr;
-  ptr->pointers.c_ptr = t;
-
-  if(is_reference){
-    LuaObject registry(L, LUA_REGISTRYINDEX);
-    auto next_index_ref = registry[cpp_reference_counter];
-    int next_index = next_index_ref.Cast<int>();
-    ptr->reference_id = next_index;
-    next_index_ref = next_index + 1;
-
-    void* set_voidp = registry[cpp_valid_reference_set].Cast<void*>();
-    std::set<unsigned long>* reference_set = static_cast<std::set<unsigned long>*>(set_voidp);
-    reference_set->insert(next_index);
-  } else {
-    ptr->reference_id = 0;
+  unsigned long reference_id = 0;
+  if(is_reference) {
+    reference_id = GenerateReferenceID(L);
   }
+
+  // Allocate memory held by lua to store, construct into that location.
+  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableCPointer<T>);
+  void* userdata = lua_newuserdata(L, memsize);
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  VariableCPointer<T>* ptr = new(storage) VariableCPointer<T>(t, reference_id);
+
+  // Can't just store the VariableWeakPointer<T>*,
+  //   because we need to be able to cast from void* to VariablePointer<T>*.
+  *static_cast<VariablePointer<T>**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }

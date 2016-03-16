@@ -48,35 +48,15 @@ namespace Lua{
       auto ptr = ReadVariablePointer<ClassType>(L, 1);
       lua_remove(L,1);
 
-      switch(ptr->type){
-      case PointerType::shared_ptr:
-        {
-          return call_member_function_helper(build_indices<sizeof...(Params)>(),
-                                             L, ptr->pointers.shared_ptr.get());
-        }
-      case PointerType::weak_ptr:
-        {
-          if(auto lock = ptr->pointers.weak_ptr.lock()){
-            return call_member_function_helper(build_indices<sizeof...(Params)>(), L, lock.get());
-          } else {
-            Push(L, LuaNil());
-            return 1;
-          }
-        }
-      case PointerType::c_ptr:
-        {
-          if(IsValidReference(L, ptr->reference_id)){
-            return call_member_function_helper(build_indices<sizeof...(Params)>(),
-                                               L, ptr->pointers.c_ptr);
-          } else {
-            Push(L, LuaNil());
-            return 1;
-          }
-        }
-      default:
-        std::cout << "Calling on unknown pointer type, should never happen" << std::endl;
-        assert(false);
+      ClassType* cptr;
+      try{
+        cptr = ptr->get_c(L);
+      } catch(LuaInvalidStackContents&) {
+        Push(L, LuaNil());
+        return 1;
       }
+
+      return call_member_function_helper(build_indices<sizeof...(Params)>(), L, cptr);
     }
 
   private:
