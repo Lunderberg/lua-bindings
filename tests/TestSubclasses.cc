@@ -42,7 +42,7 @@ TEST(LuaSubclasses, CallBaseMethods) {
   EXPECT_EQ(L.LoadString<int>("return base:GetX()"), 1);
   EXPECT_EQ(L.LoadString<int>("return derived:GetX()"), 1);
 
-  EXPECT_THROW(L.LoadString("return base:GetY()"), LuaExecuteError);
+  EXPECT_THROW(L.LoadString("return base:GetY()"), Lua::LuaExecuteError);
   EXPECT_EQ(L.LoadString<int>("return derived:GetY()"), 2);
 }
 
@@ -59,5 +59,5 @@ TEST(LuaSubclasses, PassToFunction) {
   EXPECT_NO_THROW(L.LoadString("accepts_derived_class(derived)"));
 
   EXPECT_THROW(L.LoadString("accepts_derived_class(base)"),
-               LuaExecuteError);
+               Lua::LuaExecuteError);
 }

@@ -55,7 +55,7 @@ TEST(LuaCoroutines, MaxInstructions){
   EXPECT_EQ(res2, "hello");
   ASSERT_TRUE(thread.IsRunning());
 
-  EXPECT_THROW(thread.Resume<double>(42.5), LuaRuntimeTooLong);
+  EXPECT_THROW(thread.Resume<double>(42.5), Lua::LuaRuntimeTooLong);
   EXPECT_EQ( L.CastGlobal<int>("i"), 25); //25 loops until the 100 instructions run out.
 }
 

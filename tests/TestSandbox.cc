@@ -11,7 +11,7 @@ TEST(LuaSandbox, MemoryLimit){
                             "  large[i] = i "
                             "  i = i + 1 "
                             "end "),
-               LuaOutOfMemoryError);
+               Lua::LuaOutOfMemoryError);
 }
 
 TEST(LuaSandbox, RestrictedFunctions){
@@ -25,5 +25,5 @@ TEST(LuaSandbox, RestrictedFunctions){
   L.LoadString("os.time()");
 
   EXPECT_THROW(L.LoadString("os.execute('echo hi')"),
-               LuaExecuteError);
+               Lua::LuaExecuteError);
 }

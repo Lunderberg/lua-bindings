@@ -88,10 +88,10 @@ bool Lua::LuaTableReference<T>::Exists() const {
 template<typename T, typename U>
 bool operator==(const Lua::LuaTableReference<T>& a, const Lua::LuaTableReference<U>& b) {
   Lua::LuaObject a_obj = a.Get();
-  LuaDelayedPop a_delay(a.GetCState(), 1);
+  Lua::LuaDelayedPop a_delay(a.GetCState(), 1);
 
   Lua::LuaObject b_obj = b.Get();
-  LuaDelayedPop b_delay(b.GetCState(), 1);
+  Lua::LuaDelayedPop b_delay(b.GetCState(), 1);
 
   return a_obj == b_obj;
 }
@@ -101,7 +101,7 @@ bool operator==(const Lua::LuaTableReference<T>& a, const Lua::LuaObject& b) {
   lua_State* L = a.GetCState();
 
   Lua::LuaObject table_object = a.Get();
-  LuaDelayedPop delayed(L, 1);
+  Lua::LuaDelayedPop delayed(L, 1);
   return table_object == b;
 }
 

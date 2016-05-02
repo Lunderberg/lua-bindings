@@ -42,7 +42,7 @@ TEST(LuaGlobals, ReadTable){
 
   L.LoadString("y=5");
   auto y = L.GetGlobal("y");
-  EXPECT_THROW(y[1], LuaInvalidStackContents);
+  EXPECT_THROW(y[1], Lua::LuaInvalidStackContents);
 }
 
 TEST(LuaGlobals, TransferBetweenTables){

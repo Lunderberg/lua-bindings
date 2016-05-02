@@ -52,7 +52,7 @@ TEST(CppFunctions, CallFunctions){
   auto res4 = L.LoadString<int>("x,y = multiple_returns(); return x+y");
   EXPECT_EQ(res4, 11);
 
-  EXPECT_THROW(L.LoadString("non_existing_func()"), LuaExecuteError);
+  EXPECT_THROW(L.LoadString("non_existing_func()"), Lua::LuaExecuteError);
 
   L.SetGlobal("double_const_integer", double_const_integer);
   auto res5 = L.LoadString<int>("return double_const_integer(5)");

@@ -234,7 +234,7 @@ TEST(LuaClasses, ReturnCppClassByWeakPtr){
   }
   auto output = L.Call<std::weak_ptr<TestClass> >("get_global");
   EXPECT_THROW(L.Call<std::shared_ptr<TestClass> >("get_global"),
-               LuaExpiredWeakPointer);
+               Lua::LuaExpiredWeakPointer);
 }
 
 TEST(LuaClasses, ReturnCppClassByCPtr){
@@ -260,10 +260,10 @@ TEST(LuaClasses, ReturnCppClassByCPtr){
   EXPECT_EQ(output, &var);
 
   EXPECT_THROW(L.Call<std::weak_ptr<TestClass> >("get_global"),
-               LuaIncorrectPointerType);
+               Lua::LuaIncorrectPointerType);
 
   EXPECT_THROW(L.Call<std::shared_ptr<TestClass> >("get_global"),
-               LuaIncorrectPointerType);
+               Lua::LuaIncorrectPointerType);
 }
 
 TEST(LuaClasses, PassRefToCpp){
@@ -317,7 +317,7 @@ TEST(LuaClasses, ReferenceExpires){
   EXPECT_TRUE(L.Call<bool>("method_returns_nil"));
 
   EXPECT_THROW(L.Call<TestClass>("returns_afterward"),
-               LuaExpiredReference);
+               Lua::LuaExpiredReference);
 }
 
 TEST(LuaClasses, PassConst){
@@ -332,7 +332,7 @@ TEST(LuaClasses, PassConst){
   TestClass var;
   var.SetX(42);
   EXPECT_THROW(L.Call("accepts_TestClass", std::cref(var)),
-               LuaExecuteError);
+               Lua::LuaExecuteError);
   EXPECT_EQ(var.GetX(), 42);
 }
 
