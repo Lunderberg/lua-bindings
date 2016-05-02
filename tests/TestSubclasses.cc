@@ -28,6 +28,14 @@ namespace {
     L.SetGlobal("accepts_base_class", accepts_base_class);
     L.SetGlobal("accepts_derived_class", accepts_derived_class);
   }
+
+  struct StructA { int a; };
+  struct StructB : StructA { int b; };
+  struct StructC : StructB { int c; };
+  struct StructD : StructC { int d; };
+  struct StructE : StructD { int e; };
+
+  void accepts_struct_a(StructA&);
 }
 
 TEST(LuaSubclasses, CallBaseMethods) {
@@ -60,4 +68,22 @@ TEST(LuaSubclasses, PassToFunction) {
 
   EXPECT_THROW(L.LoadString("accepts_derived_class(base)"),
                Lua::LuaExecuteError);
+}
+
+TEST(LuaSubclasses, InheritanceChain) {
+  Lua::LuaState L;
+  L.MakeClass<StructA>("StructA");
+  L.MakeClass<StructB,StructA>("StructB");
+  L.MakeClass<StructC,StructB>("StructC");
+  L.MakeClass<StructD,StructC>("StructD");
+  L.MakeClass<StructE,StructD>("StructE");
+
+  StructE struct_e;
+  L.SetGlobal("struct_e", &struct_e);
+  ASSERT_NO_THROW(L.CastGlobal<StructA*>("struct_e"));
+
+  StructA* from_lua = L.CastGlobal<StructA*>("struct_e");
+  StructA* from_cpp = &struct_e;
+
+  EXPECT_EQ(from_lua, from_cpp);
 }

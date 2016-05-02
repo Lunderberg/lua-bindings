@@ -12,6 +12,12 @@
 #include "LuaReferenceSet.hh"
 
 namespace Lua{
+  //! Helper function for casting std::weak_ptr.
+  /*! Used when upcasting a weak_ptr to its base class.
+    I'd like a handier way to do this,
+      which doesn't require converting to shared_ptr,
+      but I don't know whether this exists.
+   */
   template<typename T, typename U>
   std::weak_ptr<T> weak_pointer_cast(const std::weak_ptr<U>& weak) {
     std::shared_ptr<U> shared = weak.lock();
@@ -42,6 +48,7 @@ namespace Lua{
     }
   };
 
+  //! A shared_ptr being held by the lua_State.
   template<typename T>
   class VariableSharedPointer : public HeldPointer {
   public:
@@ -56,6 +63,7 @@ namespace Lua{
     std::shared_ptr<T> ptr;
   };
 
+  //! A weak_ptr being held by the lua_State.
   template<typename T>
   class VariableWeakPointer : public HeldPointer {
   public:
@@ -78,6 +86,7 @@ namespace Lua{
     std::weak_ptr<T> ptr;
   };
 
+  //! A C-style pointer being held by the lua_State
   template<typename T>
   class VariableCPointer : public HeldPointer {
   public:
@@ -120,8 +129,23 @@ namespace Lua{
     virtual void* upcast(void* derived_void) = 0;
   };
 
+  //! Function to be set as __gc for each Upcaster stored.
   int garbage_collect_upcaster(lua_State* L);
 
+  //! Implementation of the upcaster, for a given
+  /*! Objects held by lua must be held as void*.
+    When they are cast from the void*, they must be cast to the identical type that they started as.
+    This causes issues when casting to a base class, because the object must first be cast to child class.
+
+    The call to Lua::Read does not know the derived type.
+    The call to Lua::Push does not know the base type.
+    Since neither location knows both, we need to store that somewhere.
+    Each class definition has an upcaster, which takes a void*, upcasts it, then returns a void*.
+    This way, by walking up the inheritance chain, we can safely cast to base class.
+
+    As an example of why this is necessary, see TestMultipleInheritance.cc
+    The pointer to a base class is not necessary the same numerical value as a pointer to child class.
+   */
   template<typename Base, typename Derived>
   class Upcaster_Impl : public Upcaster {
   public:
@@ -143,6 +167,10 @@ namespace Lua{
     }
   };
 
+  //! A helper class, to allow grabbing of the pointer and upcasting as necessary.
+  /*! Holds a pointer, and all the upcasters needed to convert it to the base class.
+    When requested, will get the pointer, then upcast it all the way to the base class.
+   */
   class PointerAccess {
   public:
     PointerAccess(HeldPointer* p, std::vector<Upcaster*> upcasters)

@@ -68,6 +68,10 @@ namespace Lua{
 
   private:
 
+    //! Helper class for generating the
+    /*! Creates either the const or the non-const member functions, depending on template parameter.
+      If it is making the non-const member functions, only add it to the non-const index.
+     */
     template<typename IClass, typename IBase>
     class ClassIndexGen {
     public:
