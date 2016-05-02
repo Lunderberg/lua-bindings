@@ -46,7 +46,7 @@ namespace Lua{
 
   //! Helper method, for grabbing a pointer from the stack.
   template<typename T>
-    VariablePointer<T>* ReadVariablePointer(lua_State* L, int index);
+    PointerAccess ReadHeldPointer(lua_State* L, int index);
 
   //! Read from the stack, by value.
   template<typename T, bool allow_references>
@@ -184,7 +184,7 @@ namespace Lua{
 
   //! Helper method, for grabbing a pointer from the stack.
   template<typename T>
-  VariablePointer<T>* ReadVariablePointer(lua_State* L, int index){
+  PointerAccess ReadHeldPointer(lua_State* L, int index){
     void* storage = lua_touserdata(L, index);
 
     if(!storage){
@@ -203,6 +203,8 @@ namespace Lua{
 
     bool is_correct_class = false;
     int curr_index = index;
+
+    std::vector<Upcaster*> upcasters;
 
     while(!is_correct_class) {
       bool has_metatable = lua_getmetatable(L, curr_index);
@@ -226,6 +228,13 @@ namespace Lua{
         is_correct_class = obj_index == class_index_nonconst;
       }
 
+      if(!is_correct_class) {
+        if(obj_metatable["upcaster"].Exists()) {
+          void* upcaster = obj_metatable["upcaster"].Cast<void*>();
+          upcasters.push_back(*static_cast<Upcaster**>(upcaster));
+        }
+      }
+
       curr_index = obj_index.StackPos();
     }
 
@@ -233,7 +242,8 @@ namespace Lua{
       throw LuaInvalidStackContents("Value could not be converted to requested type.");
     }
 
-    return *static_cast<VariablePointer<T>**>(storage);
+    HeldPointer* held = *static_cast<HeldPointer**>(storage);
+    return PointerAccess(held, upcasters);
   }
 
   //! Read from the stack, by value.
@@ -251,22 +261,22 @@ namespace Lua{
   //! Read from the stack, by shared_ptr.
   template<typename T, bool allow_references>
   std::shared_ptr<T> ReadDefaultType<std::shared_ptr<T>, allow_references>::Read(lua_State* L, int index){
-    auto ptr = ReadVariablePointer<T>(L, index);
-    return ptr->get_shared();
+    auto ptr = ReadHeldPointer<T>(L, index);
+    return std::static_pointer_cast<T>(ptr.get_shared());
   }
 
   //! Read from the stack, by weak_ptr
   template<typename T, bool allow_references>
   std::weak_ptr<T> ReadDefaultType<std::weak_ptr<T>, allow_references >::Read(lua_State* L, int index){
-    auto ptr = ReadVariablePointer<T>(L, index);
-    return ptr->get_weak();
+    auto ptr = ReadHeldPointer<T>(L, index);
+    return weak_pointer_cast<T>(ptr.get_weak());
   }
 
   //! Read from the stack, by c-style pointer.
   template<typename T, bool allow_references>
   T* ReadDefaultType<T*, allow_references>::Read(lua_State* L, int index){
-    auto ptr = ReadVariablePointer<T>(L, index);
-    return ptr->get_c(L);
+    auto ptr = ReadHeldPointer<T>(L, index);
+    return static_cast<T*>(ptr.get_c(L));
   }
 
   template<typename T, bool allow_references>

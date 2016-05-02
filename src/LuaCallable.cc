@@ -26,4 +26,3 @@ int Lua::garbage_collect_cpp_function(lua_State* L){
   delete callable;
   return 0;
 }
-

@@ -76,7 +76,7 @@ namespace Lua{
         luaL_newmetatable(L, name.c_str());
         metatable = LuaObject(L);
         metatable["__metatable"] = "Access restricted";
-        metatable["__gc"] = VariablePointer<IClass>::garbage_collect;
+        metatable["__gc"] = HeldPointer::garbage_collect;
 
         NewTable(L);
         index = LuaObject(L);
@@ -84,19 +84,7 @@ namespace Lua{
 
       ~ClassIndexGen() {
         LuaObject registry(L, LUA_REGISTRYINDEX);
-
-        if(!std::is_same<BaseClass, void>::value){
-          NewTable(L);
-          LuaObject index_metatable(L);
-          {
-            LuaObject base_metatable = registry[class_registry_entry<IBase>::get()].Get();
-            LuaDelayedPop delayed(L,1);
-            index_metatable["__index"].Set(base_metatable["__index"]);
-          }
-          index_metatable["__metatable"] = "Access restricted";
-          lua_setmetatable(L, index.StackPos());
-        }
-
+        BaseClassInit(registry, true);
         metatable["__index"] = index;
         registry[class_registry_entry<IClass>::get()] = metatable;
       }
@@ -116,6 +104,31 @@ namespace Lua{
       }
 
     private:
+      // Base class exists, make the metatable point to it.
+      template<typename T = IBase>
+      typename std::enable_if<!std::is_same<typename std::decay<T>::type, void>::value>::type
+      BaseClassInit(LuaObject& registry,bool) {
+        NewTable(L);
+        LuaObject index_metatable(L);
+        {
+          LuaObject base_metatable = registry[class_registry_entry<IBase>::get()].Get();
+          LuaDelayedPop delayed(L,1);
+          index_metatable["__index"].Set(base_metatable["__index"]);
+        }
+
+        if(!std::is_same<typename std::decay<IBase>::type, void>::value) {
+          Upcaster* upcaster = new Upcaster_Impl<typename std::decay<IBase>::type,
+                                                 typename std::decay<IClass>::type>();
+          metatable["upcaster"] = upcaster;
+        }
+
+        index_metatable["__metatable"] = "Access restricted";
+        lua_setmetatable(L, index.StackPos());
+      }
+
+      // No base class, do nothing.
+      void BaseClassInit(LuaObject&,int) { }
+
       lua_State* L;
       std::string name;
       LuaObject metatable;

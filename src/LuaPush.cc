@@ -30,6 +30,10 @@ void Lua::PushValueDirect(lua_State* L, LuaNil){
   lua_pushnil(L);
 }
 
+void Lua::PushValueDirect(lua_State* L, void* cpointer) {
+  lua_pushlightuserdata(L, cpointer);
+}
+
 void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   // Define a new userdata, storing the LuaCallable in it.
   void* userdata = lua_newuserdata(L, sizeof(callable));
@@ -46,7 +50,20 @@ void Lua::PushValueDirect(lua_State* L, Lua::LuaCallable* callable){
   lua_setmetatable(L, -2);
 }
 
-//void Lua::PushMany(lua_State*){ }
+void Lua::PushValueDirect(lua_State* L, Lua::Upcaster* callable){
+  // Define a new userdata, storing the LuaCallable in it.
+  void* userdata = lua_newuserdata(L, sizeof(callable));
+  *static_cast<Lua::Upcaster**>(userdata) = callable;
+
+  // Create the metatable
+  int metatable_uninitialized = luaL_newmetatable(L, upcaster_registry_entry.c_str());
+  if(metatable_uninitialized){
+    Lua::LuaObject table(L);
+    table["__gc"] = garbage_collect_upcaster;
+    table["__metatable"] = "Access restricted";
+  }
+  lua_setmetatable(L, -2);
+}
 
 void Lua::PushCodeFile(lua_State* L, const char* filename){
   int load_result = luaL_loadfilex(L, filename, "t");

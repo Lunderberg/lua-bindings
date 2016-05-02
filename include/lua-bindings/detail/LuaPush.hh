@@ -24,6 +24,7 @@
 namespace Lua{
   class LuaObject;
   class LuaCallable;
+  class Upcaster;
   template<typename T>
   class LuaTableReference;
 
@@ -36,7 +37,9 @@ namespace Lua{
   void PushValueDirect(lua_State* L, std::string string);
   void PushValueDirect(lua_State* L, LuaObject& obj);
   void PushValueDirect(lua_State* L, LuaCallable* callable);
+  void PushValueDirect(lua_State* L, Upcaster* upcaster);
   void PushValueDirect(lua_State* L, bool b);
+  void PushValueDirect(lua_State* L, void* cpointer);
   void PushValueDirect(lua_State* L, LuaNil);
 
   template<typename T>
@@ -73,10 +76,11 @@ namespace Lua{
   template<typename T>
   void PushValueDirect(lua_State* L, std::weak_ptr<T> t);
 
-  // LuaCallable (and subclasses) is the only thing that is currently pushed by pointer.
+  // LuaCallable and Upcaster are the only thing that is currently pushed by pointer.
   // Need the std::enable_if to make sure that this doesn't override that behavior.
   template<typename T>
-  typename std::enable_if<!std::is_base_of<LuaCallable, T>::value >::type
+  typename std::enable_if<!std::is_base_of<LuaCallable, T>::value &&
+                          !std::is_base_of<Upcaster, T>::value>::type
   PushValueDirect(lua_State* L, T* t, bool is_reference = false);
 
   template<typename RetVal, typename... Params>
@@ -142,6 +146,7 @@ namespace Lua{
 }
 
 #include "LuaTableReference.hh"
+#include "LuaCallable.hh"
 
 template<typename T>
 void Lua::PushValueDirect(lua_State*, LuaTableReference<T> ref){
@@ -170,14 +175,14 @@ void Lua::PushValueDirect(lua_State* L, std::shared_ptr<T> t){
 
 
   // Allocate memory held by lua to store, construct into that location.
-  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableSharedPointer<T>);
+  int memsize = sizeof(HeldPointer*) + sizeof(VariableSharedPointer<T>);
   void* userdata = lua_newuserdata(L, memsize);
-  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(HeldPointer*));
   VariableSharedPointer<T>* ptr = new(storage) VariableSharedPointer<T>(t);
 
   // Can't just store the VariableWeakPointer<T>*,
-  //   because we need to be able to cast from void* to VariablePointer<T>*.
-  *static_cast<VariablePointer<T>**>(userdata) = ptr;
+  //   because we need to be able to cast from void* to HeldPointer*.
+  *static_cast<HeldPointer**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }
@@ -191,14 +196,14 @@ void Lua::PushValueDirect(lua_State* L, std::weak_ptr<T> t){
   }
 
   // Allocate memory held by lua to store, construct into that location.
-  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableWeakPointer<T>);
+  int memsize = sizeof(HeldPointer*) + sizeof(VariableWeakPointer<T>);
   void* userdata = lua_newuserdata(L, memsize);
-  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(HeldPointer*));
   VariableWeakPointer<T>* ptr = new(storage) VariableWeakPointer<T>(t);
 
   // Can't just store the VariableWeakPointer<T>*,
-  //   because we need to be able to cast from void* to VariablePointer<T>*.
-  *static_cast<VariablePointer<T>**>(userdata) = ptr;
+  //   because we need to be able to cast from void* to HeldPointer*.
+  *static_cast<HeldPointer**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }
@@ -206,7 +211,8 @@ void Lua::PushValueDirect(lua_State* L, std::weak_ptr<T> t){
 // LuaCallable (and subclasses) is the only thing that is currently pushed by pointer.
 // Need the std::enable_if to make sure that this doesn't override that behavior.
 template<typename T>
-typename std::enable_if<!std::is_base_of<Lua::LuaCallable, T>::value >::type
+typename std::enable_if<!std::is_base_of<Lua::LuaCallable, T>::value &&
+                        !std::is_base_of<Lua::Upcaster, T>::value>::type
 Lua::PushValueDirect(lua_State* L, T* t, bool is_reference){
   int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>::get().c_str());
   lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
@@ -220,14 +226,14 @@ Lua::PushValueDirect(lua_State* L, T* t, bool is_reference){
   }
 
   // Allocate memory held by lua to store, construct into that location.
-  int memsize = sizeof(VariablePointer<T>*) + sizeof(VariableCPointer<T>);
+  int memsize = sizeof(HeldPointer*) + sizeof(VariableCPointer<T>);
   void* userdata = lua_newuserdata(L, memsize);
-  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(VariablePointer<T>*));
+  void* storage = static_cast<void*>(static_cast<char*>(userdata) + sizeof(HeldPointer*));
   VariableCPointer<T>* ptr = new(storage) VariableCPointer<T>(t, reference_id);
 
   // Can't just store the VariableWeakPointer<T>*,
-  //   because we need to be able to cast from void* to VariablePointer<T>*.
-  *static_cast<VariablePointer<T>**>(userdata) = ptr;
+  //   because we need to be able to cast from void* to HeldPointer*.
+  *static_cast<HeldPointer**>(userdata) = ptr;
 
   luaL_setmetatable(L, class_registry_entry<T>::get().c_str());
 }

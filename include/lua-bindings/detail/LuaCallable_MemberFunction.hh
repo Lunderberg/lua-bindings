@@ -51,12 +51,12 @@ namespace Lua{
         throw LuaCppCallError("Incorrect number of arguments passed");
       }
 
-      auto ptr = ReadVariablePointer<ClassType>(L, 1);
+      auto ptr = ReadHeldPointer<ClassType>(L, 1);
       lua_remove(L,1);
 
       ClassType* cptr;
       try{
-        cptr = ptr->get_c(L);
+        cptr = static_cast<ClassType*>(ptr.get_c(L));
       } catch(LuaInvalidStackContents&) {
         Push(L, LuaNil());
         return 1;
