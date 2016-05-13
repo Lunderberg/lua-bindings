@@ -100,27 +100,27 @@ namespace Lua{
 
   // Need separate specialization for l-value reference, r-value reference.
   // Otherwise, it will try to make a std::shared_ptr<T&>, which is nonsensical.
-  template<typename T, bool allow_references>
+  template<typename T, bool track_references>
   struct PushDefaultType{
     static void Push(lua_State* L, T&& t);
   };
 
   // And here is the case for l-value references.
-  template<typename T, bool allow_references>
-  struct PushDefaultType<T&, allow_references>{
+  template<typename T, bool track_references>
+  struct PushDefaultType<T&, track_references>{
     static void Push(lua_State* L, T& t);
   };
 
-  template<typename T, bool allow_references>
-  struct PushDefaultType<std::reference_wrapper<T>, allow_references>{
+  template<typename T, bool track_references>
+  struct PushDefaultType<std::reference_wrapper<T>, track_references>{
     static void Push(lua_State* L, T& t);
   };
 
-  template<bool allow_references, typename T>
+  template<bool track_references, typename T>
   auto PushDirectIfPossible(lua_State* L, T t, bool)
     -> decltype(PushValueDirect(L, t));
 
-  template<bool allow_references, typename T>
+  template<bool track_references, typename T>
   void PushDirectIfPossible(lua_State* L, T&& t, int);
 
   //! The mother method, which will push any object onto the lua stack, if possible.
@@ -130,15 +130,15 @@ namespace Lua{
     Otherwise, PushDefaultType<T>::Push is called.
     This has two special cases, one for rvalue references, and one for lvalue references.
    */
-  template<bool allow_references = false, typename T>
+  template<bool track_references = false, typename T>
   void Push(lua_State* L, T&& t);
 
   //! Does nothing.  Needed for end of recursion of PushMany
-  template<bool allow_references = false>
+  template<bool track_references = false>
   void PushMany(lua_State*);
 
   //! Pushes each value onto the stack, in order.
-  template<bool allow_references = false, typename FirstParam, typename... Params>
+  template<bool track_references = false, typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params);
 
   void PushCodeFile(lua_State* L, const char* filename);
@@ -213,7 +213,7 @@ void Lua::PushValueDirect(lua_State* L, std::weak_ptr<T> t){
 template<typename T>
 typename std::enable_if<!std::is_base_of<Lua::LuaCallable, T>::value &&
                         !std::is_base_of<Lua::Upcaster, T>::value>::type
-Lua::PushValueDirect(lua_State* L, T* t, bool is_reference){
+Lua::PushValueDirect(lua_State* L, T* t, bool track_reference){
   int metatable_exists = luaL_getmetatable(L, class_registry_entry<T>::get().c_str());
   lua_pop(L, 1); // luaL_getmetatable pushes nil if no such table exists
   if(!metatable_exists){
@@ -221,7 +221,7 @@ Lua::PushValueDirect(lua_State* L, T* t, bool is_reference){
   }
 
   unsigned long reference_id = 0;
-  if(is_reference) {
+  if(track_reference) {
     reference_id = GenerateReferenceID(L);
   }
 
@@ -273,34 +273,33 @@ void Lua::PushValueDirect(lua_State* L, std::map<std::string, T> map){
 
 // Need separate specialization for l-value reference, r-value reference.
 // Otherwise, it will try to make a std::shared_ptr<T&>, which is nonsensical.
-template<typename T, bool allow_references>
-void Lua::PushDefaultType<T, allow_references>::Push(lua_State* L, T&& t){
+template<typename T, bool track_references>
+void Lua::PushDefaultType<T, track_references>::Push(lua_State* L, T&& t){
   auto obj = std::make_shared<T>(t);
   PushValueDirect(L, obj);
 }
 
 // And here is the case for l-value references.
-template<typename T, bool allow_references>
-void Lua::PushDefaultType<T&, allow_references>::Push(lua_State* L, T& t){
+template<typename T, bool track_references>
+void Lua::PushDefaultType<T&, track_references>::Push(lua_State* L, T& t){
   auto obj = std::make_shared<T>(t);
   PushValueDirect(L, obj);
 }
 
-template<typename T, bool allow_references>
-void Lua::PushDefaultType<std::reference_wrapper<T>, allow_references>::Push(lua_State* L, T& t){
-  static_assert(allow_references, "Unsafe to use references in this context");
-  PushValueDirect(L, std::addressof(t), true);
+template<typename T, bool track_references>
+void Lua::PushDefaultType<std::reference_wrapper<T>, track_references>::Push(lua_State* L, T& t){
+  PushValueDirect(L, std::addressof(t), track_references);
 }
 
-template<bool allow_references, typename T>
+template<bool track_references, typename T>
 auto Lua::PushDirectIfPossible(lua_State* L, T t, bool)
   -> decltype(PushValueDirect(L, t)) {
   PushValueDirect(L, t);
 }
 
-template<bool allow_references, typename T>
+template<bool track_references, typename T>
 void Lua::PushDirectIfPossible(lua_State* L, T&& t, int) {
-  PushDefaultType<T, allow_references>::Push(L, std::forward<T>(t));
+  PushDefaultType<T, track_references>::Push(L, std::forward<T>(t));
 }
 
 //! The mother method, which will push any object onto the lua stack, if possible.
@@ -310,20 +309,20 @@ void Lua::PushDirectIfPossible(lua_State* L, T&& t, int) {
   Otherwise, PushDefaultType<T>::Push is called.
   This has two special cases, one for rvalue references, and one for lvalue references.
 */
-template<bool allow_references = false, typename T>
+template<bool track_references = false, typename T>
 void Lua::Push(lua_State* L, T&& t){
-  PushDirectIfPossible<allow_references>(L, std::forward<T>(t), true);
+  PushDirectIfPossible<track_references>(L, std::forward<T>(t), true);
 }
 
 //! Does nothing.  Needed for end of recursion of PushMany
-template<bool allow_references = false>
+template<bool track_references = false>
 void Lua::PushMany(lua_State*){ }
 
 //! Pushes each value onto the stack, in order.
-template<bool allow_references = false, typename FirstParam, typename... Params>
+template<bool track_references = false, typename FirstParam, typename... Params>
 void Lua::PushMany(lua_State* L, FirstParam&& first, Params&&... params){
-  Push<allow_references>(L, std::forward<FirstParam>(first));
-  PushMany<allow_references>(L, std::forward<Params>(params)...);
+  Push<track_references>(L, std::forward<FirstParam>(first));
+  PushMany<track_references>(L, std::forward<Params>(params)...);
 }
 
 

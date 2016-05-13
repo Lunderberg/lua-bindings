@@ -79,7 +79,15 @@ namespace Lua{
     int call_member_function_helper(indices<Indices...>, lua_State* L, ClassType* obj){
       RetVal output = func(obj, Read<Params>(L, Indices+1)...);
       int top = lua_gettop(L);
-      Push(L, output);
+      if(std::is_reference<RetVal>::value &&
+         std::is_const<RetVal>::value) {
+        Push(L, std::cref(output));
+      } else if (std::is_reference<RetVal>::value &&
+                 !std::is_const<RetVal>::value){
+          Push(L, std::ref(output));
+      } else {
+        Push(L, output);
+      }
       return lua_gettop(L) - top;
     }
 

@@ -58,7 +58,15 @@ namespace Lua{
                                     lua_State* L){
       RetVal_func output = func(Read<Params, true>(L, Indices+1)...);
       int top = lua_gettop(L);
-      Push(L, output);
+      if(std::is_reference<RetVal_func>::value &&
+         std::is_const<RetVal_func>::value) {
+        Push(L, std::cref(output));
+      } else if (std::is_reference<RetVal_func>::value &&
+                 !std::is_const<RetVal_func>::value){
+          Push(L, std::ref(output));
+      } else {
+        Push(L, output);
+      }
       return lua_gettop(L) - top;
     }
 
