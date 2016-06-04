@@ -6,3 +6,7 @@ lua-5.3.0/liblua.a
 tests/run_tests
 tests/test_results.txt
 html
+.build-target
+build
+bin
+lib
