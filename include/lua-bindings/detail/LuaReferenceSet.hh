@@ -3,7 +3,7 @@
 
 #include <set>
 
-class lua_State;
+struct lua_State;
 
 namespace Lua{
   void InitializeValidReferenceTable(lua_State* L);

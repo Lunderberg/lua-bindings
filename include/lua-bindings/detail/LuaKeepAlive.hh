@@ -1,7 +1,7 @@
 #ifndef _LUAKEEPALIVE_H_
 #define _LUAKEEPALIVE_H_
 
-class lua_State;
+struct lua_State;
 
 namespace Lua{
   void InitializeKeepAliveTable(lua_State* L);

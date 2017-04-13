@@ -14,7 +14,7 @@ namespace Lua{
 #include "LuaReferenceSet.hh"
 
 namespace Lua{
-  template<typename RetVal=void, typename... Params>
+  template<typename RetVal, typename... Params>
   RetVal CallFromStack(lua_State* L, Params&&... params){
     int top = lua_gettop(L) - 1; // -1 because the function is already on the stack.
     PreserveValidReferences ref_save(L);

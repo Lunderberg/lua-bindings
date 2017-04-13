@@ -138,7 +138,7 @@ namespace Lua{
   void PushMany(lua_State*);
 
   //! Pushes each value onto the stack, in order.
-  template<bool track_references = false, typename FirstParam, typename... Params>
+  template<bool track_references, typename FirstParam, typename... Params>
   void PushMany(lua_State* L, FirstParam&& first, Params&&... params);
 
   void PushCodeFile(lua_State* L, const char* filename);
@@ -309,17 +309,17 @@ void Lua::PushDirectIfPossible(lua_State* L, T&& t, int) {
   Otherwise, PushDefaultType<T>::Push is called.
   This has two special cases, one for rvalue references, and one for lvalue references.
 */
-template<bool track_references = false, typename T>
+template<bool track_references, typename T>
 void Lua::Push(lua_State* L, T&& t){
   PushDirectIfPossible<track_references>(L, std::forward<T>(t), true);
 }
 
 //! Does nothing.  Needed for end of recursion of PushMany
-template<bool track_references = false>
+template<bool track_references>
 void Lua::PushMany(lua_State*){ }
 
 //! Pushes each value onto the stack, in order.
-template<bool track_references = false, typename FirstParam, typename... Params>
+template<bool track_references, typename FirstParam, typename... Params>
 void Lua::PushMany(lua_State* L, FirstParam&& first, Params&&... params){
   Push<track_references>(L, std::forward<FirstParam>(first));
   PushMany<track_references>(L, std::forward<Params>(params)...);

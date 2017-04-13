@@ -28,7 +28,7 @@ namespace Lua {
 
   template<typename T, bool nonconst=false>
   struct class_registry_entry{
-    static constexpr std::string get(){
+    static std::string get(){
       std::stringstream ss;
       if(nonconst){
         ss << "Lua.Class." << type_id_safe<typename std::remove_const<T>::type>();
@@ -41,7 +41,7 @@ namespace Lua {
 
   template<typename T, bool nonconst>
   struct class_registry_entry<T&, nonconst>{
-    static constexpr std::string get(){
+    static std::string get(){
       return class_registry_entry<T,nonconst>::get();
     }
   };

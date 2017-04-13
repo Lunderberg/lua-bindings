@@ -68,7 +68,7 @@ template<typename T>
 template<typename RetVal>
 RetVal Lua::LuaTableReference<T>::Cast() const {
   LuaDelayedPop delayed(L, 1);
-  return Get().Cast<RetVal>();
+  return Get().template Cast<RetVal>();
 }
 
 template<typename T>

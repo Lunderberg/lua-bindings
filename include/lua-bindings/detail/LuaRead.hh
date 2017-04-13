@@ -130,12 +130,12 @@ namespace Lua{
     The auto -> decltype() construction ensures that ReadDirect<T>() is used if it is valid.
     Otherwise, ReadDefaultType<T>::Read() is used, which goes to a number of partial specializations.
    */
-  template<typename T, bool allow_references = false>
+  template<typename T, bool allow_references>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
     Read(lua_State* L, int index);
 
   //! Empty functions, needed for some templates.
-  template<typename T, bool allow_references = false>
+  template<typename T, bool allow_references>
   typename std::enable_if<std::is_same<T, void>::value, T>::type
     Read(lua_State*, int);
 }
@@ -387,14 +387,14 @@ namespace Lua{
     The auto -> decltype() construction ensures that ReadDirect<T>() is used if it is valid.
     Otherwise, ReadDefaultType<T>::Read() is used, which goes to a number of partial specializations.
    */
-  template<typename T, bool allow_references = false>
+  template<typename T, bool allow_references>
   typename std::enable_if<!std::is_same<T, void>::value, T>::type
   Read(lua_State* L, int index){
     return ReadDirectIfPossible<T, allow_references>(L, index, true);
   }
 
   //! Empty functions, needed for some templates.
-  template<typename T, bool allow_references = false>
+  template<typename T, bool allow_references>
   typename std::enable_if<std::is_same<T, void>::value, T>::type
   Read(lua_State*, int) { }
 
