@@ -1,0 +1,25 @@
+# Usage:
+#   usage = env.SConscript('lua-binding/SConscript', 'env')
+#   env.Append(**usage)
+
+Import('env')
+
+env = env.Clone()
+
+#Dir() needed to make the include be relative to SConscript
+inc_dirs = [Dir('.').abspath + '/include',
+            Dir('.').abspath + '/lua-5.3.0/src',
+        ]
+
+env.Append(CPPPATH=[inc_dirs])
+
+lua_bindings = env.StaticLibrary(
+    'lua-5.3.0/lua',
+    [Glob('lua-5.3.0/src/*.cc'), Glob('src/*.cc')],
+)
+
+usage = {'CPPPATH': inc_dirs,
+         'LIBS': [lua_bindings],
+         }
+
+Return('usage')
