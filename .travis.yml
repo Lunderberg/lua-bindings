@@ -4,48 +4,12 @@ sudo: false
 
 matrix:
   include:
-    # - os: linux
-    #   compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources: ['ubuntu-toolchain-r-test']
-    #       packages: ['g++-4.7']
-    #   env:
-    #     - COMPILER=g++-4.7
-
     - os: linux
       compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.8']
-      env:
-        - COMPILER=g++-4.8
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9']
-      env:
-        - COMPILER=g++-4.9
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9']
-      env:
-        - COMPILER=g++-4.9
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-5']
+          packages: ['python3-pip', 'g++-5']
       env:
         - COMPILER=g++-5
 
@@ -54,12 +18,42 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6']
+          packages: ['python3-pip', 'g++-6']
       env:
         - COMPILER=g++-6
 
     - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['python3-pip', 'g++-7']
+      env:
+        - COMPILER=g++-7
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['python3-pip', 'g++-8']
+      env:
+        - COMPILER=g++-8
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['python3-pip', 'g++-9']
+      env:
+        - COMPILER=g++-9
+
+    - os: linux
       compiler: clang
+      addons:
+        apt:
+          packages: ['python3-pip']
       env:
         - COMPILER=clang++
 
@@ -67,17 +61,8 @@ matrix:
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
-      env:
-        - COMPILER=clang++-3.5
-
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ['clang-3.6']
+          packages: ['python3-pip', 'clang-3.6']
       env:
         - COMPILER=clang++-3.6
 
@@ -86,7 +71,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7']
+          packages: ['python3-pip', 'clang-3.7']
       env:
         - COMPILER=clang++-3.7
 
@@ -95,49 +80,60 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
-          packages: ['clang-3.8']
+          packages: ['python3-pip', 'clang-3.8']
       env:
         - COMPILER=clang++-3.8
 
     - os: linux
-      dist: trusty
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
-          packages: ['clang-3.9']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.9']
+          packages: ['python3-pip', 'clang-3.9']
       env:
         - COMPILER=clang++-3.9
 
     - os: linux
-      dist: trusty
       compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
-          packages: ['clang-4.0']
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-4.0']
+          packages: ['python3-pip', 'clang-4.0']
       env:
         - COMPILER=clang++-4.0
 
     - os: osx
-      osx_image: xcode6.4
+      osx_image: xcode9.4
       compiler: clang
       env:
         - COMPILER=clang++
 
     - os: osx
-      osx_image: xcode7.3
+      osx_image: xcode10.3
       compiler: clang
       env:
         - COMPILER=clang++
 
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.6
       compiler: clang
       env:
         - COMPILER=clang++
 
+    - os: osx
+      osx_image: xcode12.2
+      compiler: clang
+      env:
+        - COMPILER=clang++
+
+
+before_install:
+- python3 -mpip install --user scons
+- export SCONS_INST_DIR=$(python3 -mpip show scons | grep Location | head -n1 | cut -d' ' -f2 -)
+- export SCONS_REL_PATH=$(python3 -mpip show -f scons | grep /bin/scons\$ | awk '{$1=$1};1')
+- export SCONS=$SCONS_INST_DIR/$SCONS_REL_PATH
 
 script:
 - $COMPILER --version
-- make CXX=$COMPILER && bin/run_tests
+- $SCONS --version
+- CXX=$COMPILER $SCONS && bin/run_tests
